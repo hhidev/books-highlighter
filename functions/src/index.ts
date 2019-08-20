@@ -2,7 +2,9 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 admin.initializeApp(functions.config().firebase);
 import CloudVisionApi from './utils/cloud-vision-api';
+import * as puppeteer from 'puppeteer';
 
+// storageに格納された画像をテキスト解析する
 export const detectText = functions.storage
   .object()
   .onFinalize(async object => {
@@ -30,4 +32,24 @@ export const detectText = functions.storage
     } else {
       console.log(result);
     }
+  });
+
+// amazonリンクから書籍情報をスクレイピングする
+export const scraping = functions
+  .runWith({
+    timeoutSeconds: 200,
+    memory: '1GB'
+  })
+  .https.onCall(async (data, context) => {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
+    await page.goto(data.targetUrl, { waitUntil: 'networkidle0' });
+    const bookTitle = await (await page.$x(
+      '//span[@id="ebooksProductTitle"]'
+    ))[0];
+    console.log(bookTitle);
+    return bookTitle;
   });

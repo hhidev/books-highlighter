@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Header from '../components/header';
-import { storage, firebaseApp, db } from '../firebase';
+import { storage, firebaseApp, db, functions } from '../firebase';
 import { connect } from 'react-redux';
 import { IUser, userActions } from '../store/modules/user';
 import { Dispatch } from 'redux';
@@ -58,6 +58,20 @@ const Home: React.FunctionComponent<Props> = props => {
       });
   };
 
+  const parseBookInfo = () => {
+    const callable = functions.httpsCallable('scraping');
+    callable({
+      targetUrl:
+        'https://www.amazon.co.jp/dp/B07ND6QTN4/?coliid=I2D2IAW24Q5VF8&colid=139TDX4P49ORP&psc=0&ref_=lv_ov_lig_dp_it'
+    })
+      .then(result => {
+        console.log(result);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
   return (
     <React.Fragment>
       <Header />
@@ -67,6 +81,7 @@ const Home: React.FunctionComponent<Props> = props => {
           {JSON.stringify(detectiveResult, null, 2)}
         </pre>
       </div>
+      <button onClick={parseBookInfo}>書籍情報を取得</button>
     </React.Fragment>
   );
 };

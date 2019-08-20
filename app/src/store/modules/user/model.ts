@@ -5,7 +5,7 @@ export interface IUser {
   displayName: string | null;
 }
 
-const defaultUser = {
+const defaultUser: IUser = {
   uid: null,
   displayName: null
 };
