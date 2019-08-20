@@ -1,29 +1,39 @@
 import * as React from 'react';
 import Header from '../components/header';
-import { storage } from '../firebase';
+import { storage, firebaseApp } from '../firebase';
+import { connect } from 'react-redux';
+import { IUser, userActions } from '../store/modules/user';
+import { Dispatch } from 'redux';
 
-const Home: React.FunctionComponent = props => {
+interface Props {
+  user: IUser;
+  setCurrentUser: (user: firebase.UserInfo) => void;
+}
+
+const Home: React.FunctionComponent<Props> = props => {
   const [detectiveResult, setResult] = React.useState('');
+
+  React.useEffect(() => {
+    if (!props.user.uid) {
+      firebaseApp.auth().onAuthStateChanged(user => {
+        if (user) {
+          props.setCurrentUser(user);
+        }
+      });
+    }
+  }, []);
 
   const upload = e => {
     const file = e.target.files[0];
     const storageRef = storage.ref(file.name);
-    // TODO UIDに変更
     const meta = {
-      customMetadata: { owner: 'asdfghjkl' }
+      customMetadata: { owner: props.user.uid }
     };
 
     storageRef
       .put(file, meta)
       .then(result => {
-        storageRef
-          .getDownloadURL()
-          .then(url => {
-            console.log(url);
-          })
-          .catch(error => {
-            console.log(error);
-          });
+        console.log(result.state);
       })
       .catch(error => {
         console.log(error);
@@ -41,4 +51,16 @@ const Home: React.FunctionComponent = props => {
   );
 };
 
-export default Home;
+const mapStateToProps = state => ({
+  user: state.user
+});
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  setCurrentUser: (user: firebase.UserInfo) =>
+    dispatch(userActions.loginSuccess(user))
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Home);

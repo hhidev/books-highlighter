@@ -1,7 +1,7 @@
 import reducer from './reducer';
 import * as userActions from './actions';
-import User from './model';
+import { IUser } from './model';
 
-export { userActions, User };
+export { userActions, IUser };
 
 export default reducer;
