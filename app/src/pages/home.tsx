@@ -1,9 +1,10 @@
 import * as React from 'react';
 import Header from '../components/header';
-import { storage, firebaseApp } from '../firebase';
+import { storage, firebaseApp, db } from '../firebase';
 import { connect } from 'react-redux';
 import { IUser, userActions } from '../store/modules/user';
 import { Dispatch } from 'redux';
+import { uuid } from '../utils/uuid-generator';
 
 interface Props {
   user: IUser;
@@ -12,6 +13,7 @@ interface Props {
 
 const Home: React.FunctionComponent<Props> = props => {
   const [detectiveResult, setResult] = React.useState('');
+  const [uploadedFileName, setFileName] = React.useState('');
 
   React.useEffect(() => {
     if (!props.user.uid) {
@@ -23,9 +25,24 @@ const Home: React.FunctionComponent<Props> = props => {
     }
   }, []);
 
+  React.useEffect(() => {
+    if (props.user.uid) {
+      db.collection('images')
+        .where('uid', '==', props.user.uid)
+        .where('filePath', '==', uploadedFileName)
+        .onSnapshot(snapShot => {
+          console.log(snapShot.docs);
+          if (!snapShot.empty) {
+            setResult(snapShot.docs[0].data().text);
+          }
+        });
+    }
+  }, [uploadedFileName]);
+
   const upload = e => {
     const file = e.target.files[0];
-    const storageRef = storage.ref(file.name);
+    const fileName = uuid();
+    const storageRef = storage.ref(fileName);
     const meta = {
       customMetadata: { owner: props.user.uid }
     };
@@ -34,6 +51,7 @@ const Home: React.FunctionComponent<Props> = props => {
       .put(file, meta)
       .then(result => {
         console.log(result.state);
+        setFileName(result.metadata.name);
       })
       .catch(error => {
         console.log(error);
@@ -45,7 +63,9 @@ const Home: React.FunctionComponent<Props> = props => {
       <Header />
       <input type={'file'} title={'対象ファイル'} onChange={e => upload(e)} />
       <div>
-        <pre>{JSON.stringify(detectiveResult, null, 2)}</pre>
+        <pre style={{ whiteSpace: 'pre-line' }}>
+          {JSON.stringify(detectiveResult, null, 2)}
+        </pre>
       </div>
     </React.Fragment>
   );

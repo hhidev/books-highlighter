@@ -13,5 +13,9 @@ service cloud.firestore {
       allow read: if request.auth.uid != null && isAdmin();
     }
 
+    match /images/{imageId} {
+      allow read: if request.auth.uid != null;
+    }
+
   }
 }
