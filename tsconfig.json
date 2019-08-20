@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "typeRoots": [
+      "node_modules/@types",
+      "./app/src/types"
+    ],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "es2017",
+      "es6",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es5",
+    "jsx": "react",
+    "noUnusedLocals": false,
+    "alwaysStrict": true,
+    "traceResolution": true,
+    "removeComments": false
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "node_modules",
+    "./app/dist"
+  ],
+  "include": [
+    "./app/src/**/*"
+  ]
+}
