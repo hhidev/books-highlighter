@@ -8,12 +8,6 @@ const UserReducer = (state: User = new User(), action: ApiResponse) => {
     case types.AUTHORIZE_SUCCESS:
       return User.fromLoginInfo(action.data);
 
-    // case types.LOGOUT_SUCCESS:
-    //   return new User();
-    //
-    // case types.FETCH_INFO_OK:
-    //   return User.fetchAddonInfo(action.data);
-
     default:
       return state;
   }

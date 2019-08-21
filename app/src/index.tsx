@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import Store from './store';
 import Login from './pages/login';
 import Home from './pages/home';
+import Setup from './pages/setup';
 import Auth from './pages/auth';
 
 const history = createBrowserHistory();
@@ -26,6 +27,8 @@ const App: React.FunctionComponent = props => {
       <ConnectedRouter history={history}>
         <Switch>
           <Route path="/login" component={Login} />
+          <Route path="/setup" component={Setup} />
+          <Route path="/:shelfId" component={Login} />
           <Route path="/" exact component={Home} />
         </Switch>
       </ConnectedRouter>

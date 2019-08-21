@@ -33,7 +33,6 @@ class Login extends React.Component<Props & Actions & RouterProps, State> {
           if (res.credential) {
             this.props.loginSuccess(res.user);
             sessionStorage.removeItem('signIn');
-            localStorage.setItem('access_token', res.user.uid);
             this.props.history.push('/');
           }
         })
