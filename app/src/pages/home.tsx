@@ -6,6 +6,7 @@ import { IUser, userActions } from '../store/modules/user';
 import { Dispatch } from 'redux';
 import { uuid } from '../utils/uuid-generator';
 import { bool } from 'prop-types';
+import { Link } from 'react-router-dom';
 
 interface Props {
   user: IUser;
@@ -35,6 +36,7 @@ const Home: React.FunctionComponent<Props> = props => {
 
   React.useEffect(() => {
     if (!props.user.uid) {
+      firebaseApp.auth();
       firebaseApp.auth().onAuthStateChanged(user => {
         if (user) {
           props.setCurrentUser(user);
@@ -119,7 +121,7 @@ const Home: React.FunctionComponent<Props> = props => {
   return (
     <React.Fragment>
       <Header />
-
+      <Link to={'/setup'}>setup</Link>
       {/*<input type={'file'} title={'対象ファイル'} onChange={e => upload(e)} />*/}
       {/*<div>*/}
       {/*  <pre style={{ whiteSpace: 'pre-line' }}>*/}
