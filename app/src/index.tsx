@@ -28,7 +28,7 @@ const App: React.FunctionComponent = props => {
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/setup" component={Setup} />
-          <Route path="/:shelfId" component={Login} />
+          <Route path="/:shelfId" component={Home} />
           <Route path="/" exact component={Home} />
         </Switch>
       </ConnectedRouter>

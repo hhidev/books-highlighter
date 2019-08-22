@@ -1,6 +1,4 @@
-// 下記を自分のものに書き換える
-console.log(process.env);
-console.log(process.env.REACT_APP_FIREBASE_STORAGE_BUCKET);
+// envファイルに設定した値が設定される
 export const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,

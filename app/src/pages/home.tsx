@@ -6,7 +6,9 @@ import { IUser, userActions } from '../store/modules/user';
 import { Dispatch } from 'redux';
 import { uuid } from '../utils/uuid-generator';
 import { bool } from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Link, Route } from 'react-router-dom';
+import { RouterProps } from 'react-router';
+import Highlight from './home/highlight';
 
 interface Props {
   user: IUser;
@@ -14,6 +16,7 @@ interface Props {
 }
 
 interface Book {
+  id: string;
   title: string;
   author: string;
   category: string;
@@ -21,11 +24,15 @@ interface Book {
   amazonUrl: string;
 }
 
-const Home: React.FunctionComponent<Props> = props => {
+const Home: React.FunctionComponent<Props & RouterProps> = props => {
+  const shelfId = props.history.location.pathname.replace('/', '');
+  console.log(shelfId);
+
   const [detectiveResult, setResult] = React.useState('');
   const [uploadedFileName, setFileName] = React.useState('');
   const [isShowModal, setModalFlag] = React.useState(false);
   const [bookInfo, setBookInfo] = React.useState<Book>({
+    id: '',
     title: '',
     author: '',
     category: '',
@@ -33,10 +40,35 @@ const Home: React.FunctionComponent<Props> = props => {
     amazonUrl: ''
   });
   const [bookList, setBookList] = React.useState<Array<Book>>([]);
+  const [selectedBookId, setSelectedBookId] = React.useState('');
+
+  React.useEffect(() => {
+    if (props.user.uid) {
+      db.collection('books')
+        .where('uid', '==', props.user.uid)
+        .where('shelfId', '==', shelfId)
+        .get()
+        .then(snapShot => {
+          if (!snapShot.empty) {
+            const bookList = [];
+            if (!snapShot.empty) {
+              snapShot.docs.forEach(doc => {
+                const book = doc.data() as Book;
+                book.id = doc.id;
+                bookList.push(book);
+              });
+            }
+            setBookList(bookList);
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  }, [props]);
 
   React.useEffect(() => {
     if (!props.user.uid) {
-      firebaseApp.auth();
       firebaseApp.auth().onAuthStateChanged(user => {
         if (user) {
           props.setCurrentUser(user);
@@ -45,40 +77,40 @@ const Home: React.FunctionComponent<Props> = props => {
     }
   }, []);
 
-  React.useEffect(() => {
-    if (props.user.uid) {
-      db.collection('images')
-        .where('uid', '==', props.user.uid)
-        .where('filePath', '==', uploadedFileName)
-        .onSnapshot(snapShot => {
-          console.log(snapShot.docs);
-          if (!snapShot.empty) {
-            setResult(snapShot.docs[0].data().text);
-          }
-        });
-    }
-  }, [uploadedFileName]);
+  // React.useEffect(() => {
+  //   if (props.user.uid) {
+  //     db.collection('images')
+  //       .where('uid', '==', props.user.uid)
+  //       .where('filePath', '==', uploadedFileName)
+  //       .onSnapshot(snapShot => {
+  //         console.log(snapShot.docs);
+  //         if (!snapShot.empty) {
+  //           setResult(snapShot.docs[0].data().text);
+  //         }
+  //       });
+  //   }
+  // }, [uploadedFileName]);
 
-  React.useEffect(() => {
-    if (props.user.uid) {
-      db.collection('books')
-        .where('uid', '==', props.user.uid)
-        .get()
-        .then(snapShot => {
-          console.log(snapShot);
-          const bookList = [];
-          if (!snapShot.empty) {
-            snapShot.docs.forEach(doc => {
-              bookList.push(doc.data());
-            });
-          }
-          setBookList(bookList);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  }, [props.user]);
+  // React.useEffect(() => {
+  //   if (props.user.uid) {
+  //     db.collection('books')
+  //       .where('uid', '==', props.user.uid)
+  //       .get()
+  //       .then(snapShot => {
+  //         console.log(snapShot);
+  //         const bookList = [];
+  //         if (!snapShot.empty) {
+  //           snapShot.docs.forEach(doc => {
+  //             bookList.push(doc.data());
+  //           });
+  //         }
+  //         setBookList(bookList);
+  //       })
+  //       .catch(error => {
+  //         console.log(error);
+  //       });
+  //   }
+  // }, [props.user]);
 
   const upload = e => {
     const file = e.target.files[0];
@@ -121,7 +153,6 @@ const Home: React.FunctionComponent<Props> = props => {
   return (
     <React.Fragment>
       <Header />
-      <Link to={'/setup'}>setup</Link>
       {/*<input type={'file'} title={'対象ファイル'} onChange={e => upload(e)} />*/}
       {/*<div>*/}
       {/*  <pre style={{ whiteSpace: 'pre-line' }}>*/}
@@ -134,7 +165,11 @@ const Home: React.FunctionComponent<Props> = props => {
           <div className={'column is-one-quarter'}>
             {bookList.map((book, i) => {
               return (
-                <div className="card" key={i}>
+                <div
+                  className="card"
+                  key={i}
+                  onClick={e => setSelectedBookId(book.id)}
+                >
                   <div className="card-image">
                     <figure className="image is-128x128">
                       <img src={book.imageUrl} alt="Placeholder image" />
@@ -152,7 +187,9 @@ const Home: React.FunctionComponent<Props> = props => {
               );
             })}
           </div>
-          <div className={'column'} />
+          <div className={'column'}>
+            <Highlight bookId={selectedBookId} />
+          </div>
         </div>
       </div>
 
