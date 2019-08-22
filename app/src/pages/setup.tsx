@@ -1,6 +1,56 @@
 import * as React from 'react';
+import { db } from '../firebase';
+import { connect } from 'react-redux';
+import { IUser } from '../store/modules/user';
+import { RouterProps } from 'react-router';
 
-const Setup: React.FunctionComponent = props => {
+interface Props {
+  user: IUser;
+}
+
+interface FormData {
+  title: string;
+  public: boolean;
+  uid: string;
+}
+
+const Setup: React.FunctionComponent<Props & RouterProps> = props => {
+  const [formData, setFormData] = React.useState<FormData>({
+    title: `${props.user.displayName}の本棚`,
+    public: false,
+    uid: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleRadioChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    if (name === 'public') {
+      setFormData({ ...formData, [name]: checked });
+    } else {
+      setFormData({ ...formData, public: !checked });
+    }
+  };
+
+  const submit = async () => {
+    await db
+      .collection('shelves')
+      .add({
+        title: '',
+        public: false,
+        uid: props.user.uid
+      })
+      .then(docRef => {
+        props.history.push(`/${docRef.id}`);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
   return (
     <div className={'container is-fluid'}>
       <div className={'columns is-centered'}>
@@ -18,8 +68,10 @@ const Setup: React.FunctionComponent = props => {
             <div className="control">
               <input
                 className="input"
+                name={'title'}
                 type="text"
-                placeholder="例) ビジネス関連"
+                value={formData.title}
+                onChange={e => handleInputChange(e)}
               />
             </div>
           </div>
@@ -27,11 +79,21 @@ const Setup: React.FunctionComponent = props => {
           <div className="field">
             <div className="control">
               <label className="radio">
-                <input type="radio" name="answer" />
+                <input
+                  type="radio"
+                  name="public"
+                  checked={formData.public}
+                  onChange={e => handleRadioChecked(e)}
+                />
                 公開
               </label>
               <label className="radio">
-                <input type="radio" name="answer" />
+                <input
+                  type="radio"
+                  name="private"
+                  checked={!formData.public}
+                  onChange={e => handleRadioChecked(e)}
+                />
                 非公開
               </label>
             </div>
@@ -39,7 +101,9 @@ const Setup: React.FunctionComponent = props => {
 
           <div className="field is-grouped is-grouped-right">
             <div className="control">
-              <button className={'button is-primary'}>登録する</button>
+              <button className={'button is-primary'} onClick={submit}>
+                登録する
+              </button>
             </div>
           </div>
         </div>
@@ -48,4 +112,8 @@ const Setup: React.FunctionComponent = props => {
   );
 };
 
-export default Setup;
+const mapStateToProps = state => ({
+  user: state.user
+});
+
+export default connect(mapStateToProps)(Setup);
