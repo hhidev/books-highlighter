@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { db } from '../../firebase';
 import styled from 'styled-components';
+import { IUser } from '../../store/modules/user';
 
 interface Props {
   bookId: string;
+  user: IUser;
 }
 
 interface Image {
@@ -12,20 +14,18 @@ interface Image {
   text: string;
 }
 
-interface SelectRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  bottom: number;
-  top: number;
-  left: number;
-  right: number;
+interface HighlightText {
+  text: string;
+  color: string;
+  uid: string;
+  bookId: string;
 }
 
 const Highlight: React.FunctionComponent<Props> = props => {
+  // console.log(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
   const [images, setImages] = React.useState<Image[]>([]);
   const [selectedTabName, setSelectTab] = React.useState('ハイライト');
+  const [highlights, setHighlights] = React.useState<HighlightText[]>([]);
   const [selectedText, setSelectedText] = React.useState('');
   const [selectionRect, setSelectionRect] = React.useState<ClientRect>({
     width: 0,
@@ -35,9 +35,9 @@ const Highlight: React.FunctionComponent<Props> = props => {
     left: 0,
     right: 0
   });
-  console.log(selectionRect);
 
   React.useEffect(() => {
+    console.log(props.bookId);
     if (props.bookId) {
       db.collection('images')
         .where('bookId', '==', props.bookId)
@@ -46,6 +46,8 @@ const Highlight: React.FunctionComponent<Props> = props => {
           if (!snapShot.empty) {
             const images = snapShot.docs.map(doc => doc.data() as Image);
             setImages(images);
+          } else {
+            setImages([]);
           }
         })
         .catch(error => {
@@ -53,6 +55,23 @@ const Highlight: React.FunctionComponent<Props> = props => {
         });
     }
   }, [props.bookId]);
+
+  React.useEffect(() => {
+    // TODO 登録時間順に並び替えたい
+    db.collection('highlights')
+      .where('bookId', '==', props.bookId)
+      .where('uid', '==', props.user.uid)
+      .onSnapshot(snapShot => {
+        if (!snapShot.empty) {
+          const highlights = snapShot.docs.map(
+            doc => doc.data() as HighlightText
+          );
+          setHighlights(highlights);
+        } else {
+          setHighlights([]);
+        }
+      });
+  });
 
   const showOnMenu = () => {
     if (window.getSelection().type === 'Range') {
@@ -82,6 +101,23 @@ const Highlight: React.FunctionComponent<Props> = props => {
         .getRangeAt(0)
         .getBoundingClientRect()
     );
+  };
+
+  const submit = async () => {
+    await db
+      .collection('highlights')
+      .add({
+        bookId: props.bookId,
+        text: selectedText,
+        uid: props.user.uid,
+        color: 'yellow'
+      })
+      .then(docRef => {
+        console.log(docRef);
+      })
+      .catch(error => {
+        console.log(error);
+      });
   };
 
   return (
@@ -114,11 +150,22 @@ const Highlight: React.FunctionComponent<Props> = props => {
           <ColorButton color={'yellow'} />
           <ColorButton color={'blue'} />
           <ColorButton color={'red'} />
-          <a>ハイライト</a>
+          <a onClick={e => submit()}>ハイライト</a>
           <a>編集</a>
         </ButtonContainer>
         <Triangle left={selectionRect.left} />
       </PopupMenu>
+
+      {selectedTabName === 'ハイライト' &&
+        highlights.map((highlight, i) => {
+          return (
+            <div key={i} style={{ marginBottom: '1em' }}>
+              <HighlightContent color={highlight.color}>
+                {highlight.text}
+              </HighlightContent>
+            </div>
+          );
+        })}
 
       {selectedTabName === '未処理データ' &&
         images.map((image, i) => {
@@ -143,7 +190,7 @@ const PopupMenu = styled('div')`
   pointer-events: none;
 `;
 
-const ButtonContainer = styled('a')`
+const ButtonContainer = styled('div')`
   position: relative;
   display: inline-block;
   width: 250px;
@@ -174,6 +221,11 @@ const ColorButton = styled('a')<{ color: string }>`
   width: 24px;
   height: 24px;
   border-radius: 50%;
+`;
+
+const HighlightContent = styled('pre')<{ color: string }>`
+  border-left: solid 4px ${props => props.color};
+  background-color: white;
 `;
 
 export default Highlight;
