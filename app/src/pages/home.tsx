@@ -4,12 +4,10 @@ import { storage, firebaseApp, db, functions } from '../firebase';
 import { connect } from 'react-redux';
 import { IUser, userActions } from '../store/modules/user';
 import { Dispatch } from 'redux';
-import { uuid } from '../utils/uuid-generator';
-import { bool } from 'prop-types';
-import { Link, Route } from 'react-router-dom';
 import { RouterProps } from 'react-router';
 import Highlight from './home/highlight';
-import Field from '../components/field';
+import InputModal from './home/input-modal';
+import styled from 'styled-components';
 
 interface Props {
   user: IUser;
@@ -27,46 +25,10 @@ interface Book {
 
 const Home: React.FunctionComponent<Props & RouterProps> = props => {
   const shelfId = props.history.location.pathname.replace('/', '');
-  // console.log(shelfId);
-
   const [detectiveResult, setResult] = React.useState('');
   const [uploadedFileName, setFileName] = React.useState('');
-  const [isShowModal, setModalFlag] = React.useState(false);
-  const [bookInfo, setBookInfo] = React.useState<Book>({
-    id: '',
-    title: '',
-    author: '',
-    category: '',
-    imageUrl: '',
-    amazonUrl: ''
-  });
   const [bookList, setBookList] = React.useState<Array<Book>>([]);
   const [selectedBookId, setSelectedBookId] = React.useState('');
-
-  React.useEffect(() => {
-    if (props.user.uid) {
-      db.collection('books')
-        .where('uid', '==', props.user.uid)
-        .where('shelfId', '==', shelfId)
-        .get()
-        .then(snapShot => {
-          if (!snapShot.empty) {
-            const bookList = [];
-            if (!snapShot.empty) {
-              snapShot.docs.forEach(doc => {
-                const book = doc.data() as Book;
-                book.id = doc.id;
-                bookList.push(book);
-              });
-            }
-            setBookList(bookList);
-          }
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  }, [props]);
 
   React.useEffect(() => {
     if (!props.user.uid) {
@@ -78,78 +40,34 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
     }
   }, []);
 
-  // React.useEffect(() => {
-  //   if (props.user.uid) {
-  //     db.collection('images')
-  //       .where('uid', '==', props.user.uid)
-  //       .where('filePath', '==', uploadedFileName)
-  //       .onSnapshot(snapShot => {
-  //         console.log(snapShot.docs);
-  //         if (!snapShot.empty) {
-  //           setResult(snapShot.docs[0].data().text);
-  //         }
-  //       });
-  //   }
-  // }, [uploadedFileName]);
+  React.useEffect(() => {
+    if (props.user.uid) {
+      db.collection('books')
+        .where('uid', '==', props.user.uid)
+        .where('shelfId', '==', shelfId)
+        .onSnapshot(snapShot => {
+          if (!snapShot.empty) {
+            const bookList = [];
+            if (!snapShot.empty) {
+              snapShot.docs.forEach(doc => {
+                const book = doc.data() as Book;
+                book.id = doc.id;
+                bookList.push(book);
+              });
+            }
+            setBookList(bookList);
+          }
+        });
+    }
+  }, [props]);
 
-  // React.useEffect(() => {
-  //   if (props.user.uid) {
-  //     db.collection('books')
-  //       .where('uid', '==', props.user.uid)
-  //       .get()
-  //       .then(snapShot => {
-  //         console.log(snapShot);
-  //         const bookList = [];
-  //         if (!snapShot.empty) {
-  //           snapShot.docs.forEach(doc => {
-  //             bookList.push(doc.data());
-  //           });
-  //         }
-  //         setBookList(bookList);
-  //       })
-  //       .catch(error => {
-  //         console.log(error);
-  //       });
-  //   }
-  // }, [props.user]);
-
-  const upload = e => {
-    const file = e.target.files[0];
-    const fileName = uuid();
-    const storageRef = storage.ref(fileName);
-    const meta = {
-      customMetadata: { owner: props.user.uid }
-    };
-
-    storageRef
-      .put(file, meta)
-      .then(result => {
-        console.log(result.state);
-        setFileName(result.metadata.name);
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  };
-
-  const submitBookInfo = async () => {
-    await db
-      .collection('books')
-      .doc()
-      .set(bookInfo)
-      .then(result => {
-        console.log(result);
-      })
-      .catch(error => {
-        console.log(error);
-      });
-    setModalFlag(false);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setBookInfo({ ...bookInfo, [name]: value });
-  };
+  if (!props.user.uid) {
+    return (
+      <React.Fragment>
+        <div>...loading</div>
+      </React.Fragment>
+    );
+  }
 
   return (
     <React.Fragment>
@@ -160,7 +78,6 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
       {/*    {JSON.stringify(detectiveResult, null, 2)}*/}
       {/*  </pre>*/}
       {/*</div>*/}
-      {/*<button onClick={e => setModalFlag(true)}>書籍を登録する</button>*/}
       <div className={'container is-fluid is-marginless'}>
         <div className={'level is-marginless'}>
           <div className={'level-left'}>
@@ -174,26 +91,16 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
         </div>
         <div className={'columns is-marginless'}>
           <div className={'column is-one-quarter'}>
-            <a
-              className={'button is-rounded is-fullwidth'}
-              style={{ marginBottom: '1em' }}
-              onClick={e => setModalFlag(true)}
-            >
-              書籍を追加する
-            </a>
+            {/*TODO trigger部分を明記*/}
+            <InputModal shelfId={shelfId} uid={props.user.uid} />
+
             {bookList.map((book, i) => {
               return (
-                <div
+                <BookCard
                   className="card"
-                  style={{
-                    boxShadow: 'none',
-                    borderBottom: 'solid 1px #e8e8e8',
-                    backgroundColor: `${
-                      selectedBookId === book.id ? 'beige' : ''
-                    }`
-                  }}
                   key={i}
                   onClick={e => setSelectedBookId(book.id)}
+                  isSelected={selectedBookId === book.id}
                 >
                   <div className="card-image" style={{ padding: '1em' }}>
                     <figure
@@ -202,7 +109,6 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
                     >
                       <img
                         src={book.imageUrl}
-                        alt="Placeholder image"
                         style={{ objectFit: 'contain', height: '100%' }}
                       />
                     </figure>
@@ -211,7 +117,7 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
                     <p className="title is-5">{book.title}</p>
                     <p className="subtitle is-6">{book.author}</p>
                   </div>
-                </div>
+                </BookCard>
               );
             })}
           </div>
@@ -222,59 +128,15 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
           </div>
         </div>
       </div>
-
-      <div className={isShowModal ? 'modal is-active' : 'modal'}>
-        <div className="modal-background" />
-        <div className="modal-card">
-          <header className="modal-card-head">
-            <p className="modal-card-title">書籍を追加する</p>
-            <button className="delete" onClick={e => setModalFlag(false)} />
-          </header>
-          <section className="modal-card-body">
-            <Field
-              label={'タイトル'}
-              name={'title'}
-              value={bookInfo.title}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'著者'}
-              name={'author'}
-              value={bookInfo.author}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'カテゴリ'}
-              name={'category'}
-              value={bookInfo.category}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'画像URL'}
-              name={'imageUrl'}
-              value={bookInfo.imageUrl}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'Amazonリンク'}
-              name={'amazonUrl'}
-              value={bookInfo.amazonUrl}
-              onChangeHandler={handleInputChange}
-            />
-          </section>
-          <footer className="modal-card-foot">
-            <button className="button is-success" onClick={submitBookInfo}>
-              Save
-            </button>
-            <button className="button" onClick={e => setModalFlag(false)}>
-              Cancel
-            </button>
-          </footer>
-        </div>
-      </div>
     </React.Fragment>
   );
 };
+
+const BookCard = styled('div')<{ isSelected: boolean }>`
+  box-shadow: none;
+  border-bottom: solid 1px #e8e8e8;
+  background-color: ${props => (props.isSelected ? 'beige' : '')};
+`;
 
 const mapStateToProps = state => ({
   user: state.user
