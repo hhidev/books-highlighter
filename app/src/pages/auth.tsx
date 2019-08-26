@@ -1,15 +1,13 @@
 import * as React from 'react';
 import { Redirect } from 'react-router';
-import { firebaseApp } from '../firebase';
+import { auth } from '../firebase';
 
 const Auth = props => {
-  console.log(firebaseApp.auth().currentUser);
-  return !firebaseApp.auth().currentUser ? (
+  return auth.currentUser || localStorage.getItem('current_user_id') ? (
     props.children
   ) : (
     <Redirect to={'/'} />
   );
-  // localStorage.access_token ? props.children : <Redirect to={'/'} />;
 };
 
 export default Auth;

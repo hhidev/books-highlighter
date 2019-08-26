@@ -19,8 +19,6 @@ interface Actions {
 }
 
 const Login: React.FunctionComponent<Props & Actions & RouterProps> = props => {
-  let shelfId = '';
-
   React.useEffect(() => {
     firebaseApp
       .auth()
@@ -29,34 +27,33 @@ const Login: React.FunctionComponent<Props & Actions & RouterProps> = props => {
         if (res.credential) {
           props.loginSuccess(res.user);
           sessionStorage.removeItem('signIn');
-          shelfId = await getShelf(res.user.uid);
-          props.history.push(`/${shelfId}`);
+          localStorage.setItem('current_user_id', res.user.uid);
+          redirect(res.user.uid);
         }
       })
       .catch(error => {
         console.log(error);
         sessionStorage.removeItem('signIn');
       });
-  }, [shelfId]);
+  }, []);
 
-  const getShelf = async (uid: string): Promise<string> => {
-    let result = '';
-    await db
-      .collection('shelves')
+  const redirect = (uid: string) => {
+    let path = '';
+    db.collection('shelves')
       .where('uid', '==', uid)
       .get()
       .then(snapShot => {
         if (!snapShot.empty) {
-          result = snapShot.docs[0].id;
+          path = snapShot.docs[0].id;
+          props.history.push(`/${path}`);
         } else {
-          result = '';
+          props.history.push('/setup');
         }
       })
       .catch(error => {
         console.log(error);
-        result = '';
+        props.history.push('/setup');
       });
-    return result;
   };
 
   const login = async () => {

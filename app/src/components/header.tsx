@@ -40,6 +40,7 @@ const Header: React.FunctionComponent<Props> = props => {
       .auth()
       .signOut()
       .then(() => {
+        localStorage.removeItem('current_user_id');
         window.location.href = '/';
       })
       .catch(error => {

@@ -17,5 +17,18 @@ service cloud.firestore {
       allow read: if request.auth.uid != null;
     }
 
+    match /books/{bookId} {
+    	allow read;
+      allow write: if request.auth.uid != null;
+    }
+
+    match /shelves/{shelfId} {
+      allow read, write: if request.auth.uid != null;
+    }
+
+		match /highlights/{highlihgtId} {
+      allow read, write: if request.auth.uid != null;
+    }
+
   }
 }

@@ -5,11 +5,11 @@ import { Provider } from 'react-redux';
 import { createBrowserHistory } from 'history';
 import * as ReactGA from 'react-ga';
 import { ConnectedRouter } from 'connected-react-router';
-// import styled from 'styled-components';
 import Store from './store';
 import Login from './pages/login';
 import Home from './pages/home';
 import Setup from './pages/setup';
+import Auth from './pages/auth';
 
 const history = createBrowserHistory();
 ReactGA.initialize(process.env.REACT_APP_GA_TRACKING_CODE);
@@ -25,10 +25,11 @@ const App: React.FunctionComponent = props => {
     <Provider store={Store(history)}>
       <ConnectedRouter history={history}>
         <Switch>
-          <Route path="/login" component={Login} />
-          <Route path="/setup" component={Setup} />
-          <Route path="/:shelfId" component={Home} />
           <Route path="/" exact component={Login} />
+          <Auth>
+            <Route path="/setup" component={Setup} />
+            <Route path="/:shelfId" component={Home} />
+          </Auth>
         </Switch>
       </ConnectedRouter>
     </Provider>
