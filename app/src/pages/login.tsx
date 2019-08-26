@@ -18,61 +18,74 @@ interface Actions {
   loginSuccess: (data: firebase.UserInfo) => void;
 }
 
-interface State {
-  email: string;
-  password: string;
-}
+const Login: React.FunctionComponent<Props & Actions & RouterProps> = props => {
+  let shelfId = '';
 
-class Login extends React.Component<Props & Actions & RouterProps, State> {
-  async componentDidMount() {
-    try {
-      await firebaseApp
-        .auth()
-        .getRedirectResult()
-        .then(res => {
-          if (res.credential) {
-            this.props.loginSuccess(res.user);
-            sessionStorage.removeItem('signIn');
-            this.props.history.push('/');
-          }
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  React.useEffect(() => {
+    firebaseApp
+      .auth()
+      .getRedirectResult()
+      .then(async res => {
+        if (res.credential) {
+          props.loginSuccess(res.user);
+          sessionStorage.removeItem('signIn');
+          shelfId = await getShelf(res.user.uid);
+          props.history.push(`/${shelfId}`);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        sessionStorage.removeItem('signIn');
+      });
+  }, [shelfId]);
 
-  render() {
-    if (sessionStorage.getItem('signIn') === 'start') {
-      return <div>loading...</div>;
-    }
-    return (
-      <React.Fragment>
-        <div style={{ paddingTop: '80px' }}>
-          <InputBlock>
-            <button
-              className={'button is-primary'}
-              style={{ width: '100%' }}
-              color={'blue'}
-              onClick={e => this.login()}
-            >
-              ログイン
-            </button>
-          </InputBlock>
-        </div>
-      </React.Fragment>
-    );
-  }
+  const getShelf = async (uid: string): Promise<string> => {
+    let result = '';
+    await db
+      .collection('shelves')
+      .where('uid', '==', uid)
+      .get()
+      .then(snapShot => {
+        if (!snapShot.empty) {
+          result = snapShot.docs[0].id;
+        } else {
+          result = '';
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        result = '';
+      });
+    return result;
+  };
 
-  login = async () => {
+  const login = async () => {
     // firebaseからのリダイレクト時処理実行までに時間がかかり、loading中とするための設定
     sessionStorage.setItem('signIn', 'start');
     const provider = new firebase.auth.GoogleAuthProvider();
     await firebaseApp.auth().signInWithRedirect(provider);
   };
-}
+
+  if (sessionStorage.getItem('signIn') === 'start') {
+    return <div>loading...</div>;
+  }
+  return (
+    <React.Fragment>
+      <div style={{ paddingTop: '80px' }}>
+        <InputBlock>
+          <button
+            className={'button is-primary'}
+            style={{ width: '100%' }}
+            color={'blue'}
+            onClick={e => login()}
+          >
+            googleアカウントでログイン
+          </button>
+        </InputBlock>
+      </div>
+    </React.Fragment>
+  );
+};
 
 export const InputBlock = styled.div`
   max-width: 530px;

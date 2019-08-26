@@ -40,7 +40,7 @@ const Header: React.FunctionComponent<Props> = props => {
       .auth()
       .signOut()
       .then(() => {
-        window.location.reload();
+        window.location.href = '/';
       })
       .catch(error => {
         console.log(error);

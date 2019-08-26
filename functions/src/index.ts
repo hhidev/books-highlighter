@@ -12,6 +12,7 @@ export const detectText = functions.storage
     const bucketName = 'books-highlighter-f0af2.appspot.com';
     const filePath = object.name;
     const uid = object.metadata ? object.metadata.owner : '';
+    const bookId = object.metadata ? object.metadata.bookId : '';
     const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${filePath}?alt=media`;
 
     const result = await CloudVisionApi.execute(downloadUrl);
@@ -21,7 +22,8 @@ export const detectText = functions.storage
           filePath,
           downloadUrl: downloadUrl,
           text: result.data.responses[0].textAnnotations[0].description,
-          uid: uid
+          uid: uid,
+          bookId
         })
         .then(r => {
           console.log(r);

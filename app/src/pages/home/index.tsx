@@ -1,20 +1,21 @@
 import * as React from 'react';
-import Header from '../components/header';
-import { storage, firebaseApp, db, functions } from '../firebase';
+import Header from '../../components/header';
+import { storage, firebaseApp, db, functions } from '../../firebase';
 import { connect } from 'react-redux';
-import { IUser, userActions } from '../store/modules/user';
+import { IUser, userActions } from '../../store/modules/user';
 import { Dispatch } from 'redux';
 import { RouterProps } from 'react-router';
-import Highlight from './home/highlight';
-import InputModal from './home/input-modal';
+import Highlight from './highlight';
+import InputModal from './input-modal';
 import styled from 'styled-components';
+import HomeMobile from './home-mobile';
 
 interface Props {
   user: IUser;
   setCurrentUser: (user: firebase.UserInfo) => void;
 }
 
-interface Book {
+export interface Book {
   id: string;
   title: string;
   author: string;
@@ -69,15 +70,14 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
     );
   }
 
+  // モバイルからのアクセスはモバイル版コンポーネントを返す
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    return <HomeMobile bookList={bookList} user={props.user} />;
+  }
+
   return (
     <React.Fragment>
       <Header />
-      {/*<input type={'file'} title={'対象ファイル'} onChange={e => upload(e)} />*/}
-      {/*<div>*/}
-      {/*  <pre style={{ whiteSpace: 'pre-line' }}>*/}
-      {/*    {JSON.stringify(detectiveResult, null, 2)}*/}
-      {/*  </pre>*/}
-      {/*</div>*/}
       <div className={'container is-fluid is-marginless'}>
         <div className={'level is-marginless'}>
           <div className={'level-left'}>
@@ -132,7 +132,7 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
   );
 };
 
-const BookCard = styled('div')<{ isSelected: boolean }>`
+export const BookCard = styled('div')<{ isSelected: boolean }>`
   box-shadow: none;
   border-bottom: solid 1px #e8e8e8;
   background-color: ${props => (props.isSelected ? 'beige' : '')};

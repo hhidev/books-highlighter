@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { db } from '../../firebase';
+import { db, storage } from '../../firebase';
 import styled from 'styled-components';
 import { IUser } from '../../store/modules/user';
+import { uuid } from '../../utils/uuid-generator';
 
 interface Props {
   bookId: string;
@@ -35,6 +36,7 @@ const Highlight: React.FunctionComponent<Props> = props => {
     left: 0,
     right: 0
   });
+  const [uploadedFileNames, setFileNames] = React.useState([]);
 
   React.useEffect(() => {
     console.log(props.bookId);
@@ -120,6 +122,27 @@ const Highlight: React.FunctionComponent<Props> = props => {
       });
   };
 
+  const upload = e => {
+    const file = e.target.files[0];
+    const fileName = uuid();
+    uploadedFileNames.push(fileName);
+    setFileNames(uploadedFileNames);
+    const storageRef = storage.ref(fileName);
+    const meta = {
+      customMetadata: { owner: props.user.uid, bookId: props.bookId }
+    };
+
+    storageRef
+      .put(file, meta)
+      .then(result => {
+        console.log(result.state);
+        // setFileName(result.metadata.name);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
   return (
     <React.Fragment>
       <div className="tabs is-small">
@@ -134,6 +157,12 @@ const Highlight: React.FunctionComponent<Props> = props => {
             <a onClick={e => setSelectTab('未処理データ')}>
               未処理データ
               <span className="tag is-rounded is-warning">{images.length}</span>
+            </a>
+          </li>
+          <li className={selectedTabName === '画像読み取り' ? 'is-active' : ''}>
+            <a onClick={e => setSelectTab('画像読み取り')}>
+              画像読み取り
+              <span style={{ height: '2em' }} />
             </a>
           </li>
         </ul>
@@ -175,6 +204,19 @@ const Highlight: React.FunctionComponent<Props> = props => {
             </div>
           );
         })}
+
+      {selectedTabName === '画像読み取り' && (
+        <div>
+          <input
+            type={'file'}
+            title={'対象ファイル'}
+            onChange={e => upload(e)}
+          />
+          {uploadedFileNames.map(fileName => {
+            return <div>{fileName}</div>;
+          })}
+        </div>
+      )}
     </React.Fragment>
   );
 };
