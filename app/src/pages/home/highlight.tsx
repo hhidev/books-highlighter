@@ -23,7 +23,6 @@ interface HighlightText {
 }
 
 const Highlight: React.FunctionComponent<Props> = props => {
-  // console.log(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
   const [images, setImages] = React.useState<Image[]>([]);
   const [selectedTabName, setSelectTab] = React.useState('ハイライト');
   const [highlights, setHighlights] = React.useState<HighlightText[]>([]);
@@ -39,21 +38,16 @@ const Highlight: React.FunctionComponent<Props> = props => {
   const [uploadedFileNames, setFileNames] = React.useState([]);
 
   React.useEffect(() => {
-    console.log(props.bookId);
     if (props.bookId) {
       db.collection('images')
         .where('bookId', '==', props.bookId)
-        .get()
-        .then(snapShot => {
+        .onSnapshot(snapShot => {
           if (!snapShot.empty) {
             const images = snapShot.docs.map(doc => doc.data() as Image);
             setImages(images);
           } else {
             setImages([]);
           }
-        })
-        .catch(error => {
-          console.log(error);
         });
     }
   }, [props.bookId]);
@@ -136,7 +130,6 @@ const Highlight: React.FunctionComponent<Props> = props => {
       .put(file, meta)
       .then(result => {
         console.log(result.state);
-        // setFileName(result.metadata.name);
       })
       .catch(error => {
         console.log(error);
@@ -156,7 +149,13 @@ const Highlight: React.FunctionComponent<Props> = props => {
           <li className={selectedTabName === '未処理データ' ? 'is-active' : ''}>
             <a onClick={e => setSelectTab('未処理データ')}>
               未処理データ
-              <span className="tag is-rounded is-warning">{images.length}</span>
+              {images.length > 0 ? (
+                <span className="tag is-rounded is-warning">
+                  {images.length}
+                </span>
+              ) : (
+                <span style={{ height: '2em' }} />
+              )}
             </a>
           </li>
           <li className={selectedTabName === '画像読み取り' ? 'is-active' : ''}>
@@ -185,6 +184,16 @@ const Highlight: React.FunctionComponent<Props> = props => {
         <Triangle left={selectionRect.left} />
       </PopupMenu>
 
+      <CircleButton className={'button is-info'}>
+        <i className="fas fa-camera" />
+        <span>ページ読取</span>
+        <input
+          type={'file'}
+          onChange={e => upload(e)}
+          style={{ display: 'none' }}
+        />
+      </CircleButton>
+
       {selectedTabName === 'ハイライト' &&
         highlights.map((highlight, i) => {
           return (
@@ -207,11 +216,6 @@ const Highlight: React.FunctionComponent<Props> = props => {
 
       {selectedTabName === '画像読み取り' && (
         <div>
-          <input
-            type={'file'}
-            title={'対象ファイル'}
-            onChange={e => upload(e)}
-          />
           {uploadedFileNames.map(fileName => {
             return <div>{fileName}</div>;
           })}
@@ -268,6 +272,23 @@ const ColorButton = styled('a')<{ color: string }>`
 const HighlightContent = styled('pre')<{ color: string }>`
   border-left: solid 4px ${props => props.color};
   background-color: white;
+`;
+
+const CircleButton = styled('label')`
+  height: 80px;
+  width: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  > i {
+    font-size: 2rem;
+  }
+  > span {
+    font-size: 0.7rem;
+  }
 `;
 
 export default Highlight;

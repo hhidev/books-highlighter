@@ -25,10 +25,10 @@ const App: React.FunctionComponent = props => {
     <Provider store={Store(history)}>
       <ConnectedRouter history={history}>
         <Switch>
-          <Route path="/" exact component={Login} />
+          <Route path="/" exact render={props => <Login {...props} />} />
           <Auth>
-            <Route path="/setup" component={Setup} />
-            <Route path="/:shelfId" component={Home} />
+            <Route path="/setup" render={props => <Setup {...props} />} />
+            <Route path="/:shelfId" render={props => <Home {...props} />} />
           </Auth>
         </Switch>
       </ConnectedRouter>

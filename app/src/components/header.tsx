@@ -2,8 +2,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { IUser } from '../store/modules/user';
-import * as firebase from 'firebase';
-import 'firebase/auth';
+import { auth } from '../firebase';
 
 interface Props {
   user: IUser;
@@ -36,8 +35,7 @@ const Header: React.FunctionComponent<Props> = props => {
   };
 
   const logout = async () => {
-    await firebase
-      .auth()
+    await auth
       .signOut()
       .then(() => {
         localStorage.removeItem('current_user_id');

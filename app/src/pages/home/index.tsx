@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Header from '../../components/header';
-import { storage, firebaseApp, db, functions } from '../../firebase';
+import { firebaseApp, db } from '../../firebase';
 import { connect } from 'react-redux';
 import { IUser, userActions } from '../../store/modules/user';
 import { Dispatch } from 'redux';
@@ -26,8 +26,6 @@ export interface Book {
 
 const Home: React.FunctionComponent<Props & RouterProps> = props => {
   const shelfId = props.history.location.pathname.replace('/', '');
-  const [detectiveResult, setResult] = React.useState('');
-  const [uploadedFileName, setFileName] = React.useState('');
   const [bookList, setBookList] = React.useState<Array<Book>>([]);
   const [selectedBookId, setSelectedBookId] = React.useState('');
 
