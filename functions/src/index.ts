@@ -19,14 +19,23 @@ export const detectText = functions.storage
     if (result.isOK()) {
       db.collection('images')
         .add({
-          filePath,
-          downloadUrl: downloadUrl,
           text: result.data.responses[0].textAnnotations[0].description,
           uid: uid,
           bookId
         })
         .then(r => {
           console.log(r);
+          admin
+            .storage()
+            .bucket()
+            .file(filePath!)
+            .delete()
+            .then(res => {
+              console.log(res);
+            })
+            .catch(error => {
+              console.log(error);
+            });
         })
         .catch(error => {
           console.log(error);
