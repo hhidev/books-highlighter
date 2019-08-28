@@ -23,6 +23,7 @@ interface HighlightText {
 }
 
 const Highlight: React.FunctionComponent<Props> = props => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const [images, setImages] = React.useState<Image[]>([]);
   const [selectedTabName, setSelectTab] = React.useState('ハイライト');
   const [highlights, setHighlights] = React.useState<HighlightText[]>([]);
@@ -144,7 +145,9 @@ const Highlight: React.FunctionComponent<Props> = props => {
 
   return (
     <React.Fragment>
-      <div className="tabs is-small">
+      <div
+        className={isMobile ? 'tabs is-small is-fullwidth' : 'tabs is-small'}
+      >
         <ul>
           <li className={selectedTabName === 'ハイライト' ? 'is-active' : ''}>
             <a onClick={e => setSelectTab('ハイライト')}>
