@@ -119,7 +119,7 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
               );
             })}
           </div>
-          <div className={'column'}>
+          <div className={'column'} style={{ marginBottom: '80px' }}>
             {selectedBookId && (
               <Highlight bookId={selectedBookId} user={props.user} />
             )}

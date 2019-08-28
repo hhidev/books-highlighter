@@ -19,6 +19,7 @@ export const detectText = functions.storage
     if (result.isOK()) {
       db.collection('images')
         .add({
+          filePath: filePath,
           text: result.data.responses[0].textAnnotations[0].description,
           uid: uid,
           bookId

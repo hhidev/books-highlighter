@@ -11,7 +11,7 @@ interface Props {
 
 interface Image {
   bookId: string;
-  downloadUrl: string;
+  filePath: string;
   text: string;
 }
 
@@ -45,6 +45,11 @@ const Highlight: React.FunctionComponent<Props> = props => {
           if (!snapShot.empty) {
             const images = snapShot.docs.map(doc => doc.data() as Image);
             setImages(images);
+
+            const currentUploads = uploadedFileNames.filter(
+              n => !images.map(i => i.filePath).includes(n)
+            );
+            setFileNames(currentUploads);
           } else {
             setImages([]);
           }
@@ -117,6 +122,7 @@ const Highlight: React.FunctionComponent<Props> = props => {
   };
 
   const upload = e => {
+    setSelectTab('解析済み');
     const file = e.target.files[0];
     const fileName = uuid();
     uploadedFileNames.push(fileName);
@@ -146,9 +152,9 @@ const Highlight: React.FunctionComponent<Props> = props => {
               <span style={{ height: '2em' }} />
             </a>
           </li>
-          <li className={selectedTabName === '未処理データ' ? 'is-active' : ''}>
-            <a onClick={e => setSelectTab('未処理データ')}>
-              未処理データ
+          <li className={selectedTabName === '解析済み' ? 'is-active' : ''}>
+            <a onClick={e => setSelectTab('解析済み')}>
+              解析済み
               {images.length > 0 ? (
                 <span className="tag is-rounded is-warning">
                   {images.length}
@@ -156,12 +162,6 @@ const Highlight: React.FunctionComponent<Props> = props => {
               ) : (
                 <span style={{ height: '2em' }} />
               )}
-            </a>
-          </li>
-          <li className={selectedTabName === '画像読み取り' ? 'is-active' : ''}>
-            <a onClick={e => setSelectTab('画像読み取り')}>
-              画像読み取り
-              <span style={{ height: '2em' }} />
             </a>
           </li>
         </ul>
@@ -205,21 +205,25 @@ const Highlight: React.FunctionComponent<Props> = props => {
           );
         })}
 
-      {selectedTabName === '未処理データ' &&
-        images.map((image, i) => {
-          return (
-            <div key={i} style={{ marginBottom: '1em' }}>
-              <pre onMouseUp={showOnMenu}>{image.text}</pre>
-            </div>
-          );
-        })}
-
-      {selectedTabName === '画像読み取り' && (
-        <div>
-          {uploadedFileNames.map(fileName => {
-            return <div>{fileName}</div>;
+      {selectedTabName === '解析済み' && (
+        <React.Fragment>
+          <div
+            className={
+              uploadedFileNames.length > 0
+                ? 'notification is-primary'
+                : 'notification is-primary is-hidden'
+            }
+          >
+            解析が終わるとこのタブに結果が表示されます。連続して画像アップロードできます。
+          </div>
+          {images.map((image, i) => {
+            return (
+              <div key={i} style={{ marginBottom: '1em' }}>
+                <pre onMouseUp={showOnMenu}>{image.text}</pre>
+              </div>
+            );
           })}
-        </div>
+        </React.Fragment>
       )}
     </React.Fragment>
   );
@@ -283,6 +287,7 @@ const CircleButton = styled('label')`
   position: fixed;
   bottom: 1rem;
   right: 1rem;
+  z-index: 2;
   > i {
     font-size: 2rem;
   }
