@@ -2,26 +2,24 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action } from 'redux';
 import styled from 'styled-components';
-import { userActions } from '../store/modules/user';
+import { IUser, userActions } from '../store/modules/user';
 import User from '../store/modules/user/model';
 import { ThunkDispatch } from 'redux-thunk';
 import { RouteComponentProps, RouterProps } from 'react-router';
-import { firebaseApp, db } from '../firebase';
-import * as firebase from 'firebase/app';
-import 'firebase/auth';
+import { firebaseApp, db, auth, GoogleAuthProvider } from '../firebase';
+// import * as firebase from 'firebase/app';
 
 interface Props extends RouteComponentProps {
   user: User;
 }
 
 interface Actions {
-  loginSuccess: (data: firebase.UserInfo) => void;
+  loginSuccess: (data: IUser) => void;
 }
 
 const Login: React.FunctionComponent<Props & Actions & RouterProps> = props => {
   React.useEffect(() => {
-    firebaseApp
-      .auth()
+    auth
       .getRedirectResult()
       .then(async res => {
         if (res.credential) {
@@ -59,8 +57,7 @@ const Login: React.FunctionComponent<Props & Actions & RouterProps> = props => {
   const login = async () => {
     // firebaseからのリダイレクト時処理実行までに時間がかかり、loading中とするための設定
     sessionStorage.setItem('signIn', 'start');
-    const provider = new firebase.auth.GoogleAuthProvider();
-    await firebaseApp.auth().signInWithRedirect(provider);
+    await firebaseApp.auth().signInWithRedirect(GoogleAuthProvider);
   };
 
   if (sessionStorage.getItem('signIn') === 'start') {
@@ -68,41 +65,33 @@ const Login: React.FunctionComponent<Props & Actions & RouterProps> = props => {
   }
   return (
     <React.Fragment>
-      <div style={{ paddingTop: '80px' }}>
-        <InputBlock>
-          <button
-            className={'button is-primary'}
-            style={{ width: '100%' }}
-            color={'blue'}
-            onClick={e => login()}
-          >
-            googleアカウントでログイン
-          </button>
-        </InputBlock>
+      <section className={'hero'} style={{ marginTop: '5rem' }}>
+        <div className="hero-body">
+          <div className="container has-text-centered">
+            <h1 style={{ fontSize: '50px', fontWeight: 600, color: '#A8007A' }}>
+              highlighter
+            </h1>
+            <p style={{ fontSize: '20px', color: '#A8007A' }}>
+              本を紙で読む人向けのハイライトサービス
+            </p>
+          </div>
+        </div>
+      </section>
+      <div className={'has-text-centered'} style={{ paddingTop: '80px' }}>
+        <button className={'button is-rounded is-large'} onClick={e => login()}>
+          googleアカウントでログイン
+        </button>
       </div>
     </React.Fragment>
   );
 };
-
-export const InputBlock = styled.div`
-  max-width: 530px;
-  margin: 0 auto 40px;
-  box-sizing: border-box;
-  padding: 40px;
-  background: #fafafa;
-  border: 1px solid #d9d9d9;
-  border-radius: 10px;
-  font-size: 16px;
-  color: #999;
-`;
 
 const mapStateToProps = state => ({
   user: state.user
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatch<void, void, Action>) => ({
-  loginSuccess: (data: firebase.UserInfo) =>
-    dispatch(userActions.loginSuccess(data))
+  loginSuccess: (data: IUser) => dispatch(userActions.loginSuccess(data))
 });
 
 export default connect(

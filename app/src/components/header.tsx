@@ -50,7 +50,11 @@ const Header: React.FunctionComponent<Props> = props => {
     <nav className="navbar" role="navigation" aria-label="main navigation">
       <div className="navbar-brand">
         <label className="navbar-item">
-          <h1>BooksHighlighter</h1>
+          <img
+            src="https://firebasestorage.googleapis.com/v0/b/books-highlighter-f0af2.appspot.com/o/logo%2Ftext.png?alt=media&token=f7c128e4-1a0c-48d8-bc7f-feacbd000ccd"
+            width="150"
+            height="28"
+          />
         </label>
       </div>
 

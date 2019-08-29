@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Field from '../../components/field';
 import { db } from '../../firebase';
-import { Book } from './input-modal';
+import { Book } from './index';
 
 interface Props {
   shelfId: string;
@@ -48,7 +48,7 @@ const InputModalMobile: React.FunctionComponent<Props> = props => {
   return (
     <React.Fragment>
       <a
-        className={'button is-rounded is-fullwidth'}
+        className={'button is-rounded is-fullwidth has-text-weight-bold'}
         style={{ marginBottom: '1em' }}
         onClick={e => setModalFlag(true)}
       >

@@ -16,7 +16,7 @@ class User {
    *
    * @param user
    */
-  static fromLoginInfo(user: firebase.UserInfo) {
+  static fromLoginInfo(user: IUser) {
     return produce(defaultUser, draft => {
       draft.uid = user.uid;
       draft.displayName = user.displayName;

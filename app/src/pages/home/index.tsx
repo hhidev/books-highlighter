@@ -7,12 +7,13 @@ import { Dispatch } from 'redux';
 import { RouterProps } from 'react-router';
 import Highlight from './highlight';
 import InputModal from './input-modal';
+import EditModal from './edit-modal';
 import styled from 'styled-components';
 import HomeMobile from './home-mobile';
 
 interface Props {
   user: IUser;
-  setCurrentUser: (user: firebase.UserInfo) => void;
+  setCurrentUser: (user: IUser) => void;
 }
 
 export interface Book {
@@ -22,12 +23,16 @@ export interface Book {
   category: string;
   imageUrl: string;
   amazonUrl: string;
+  shelfId: string;
+  uid: string;
 }
 
 const Home: React.FunctionComponent<Props & RouterProps> = props => {
   const shelfId = props.history.location.pathname.replace('/', '');
   const [bookList, setBookList] = React.useState<Array<Book>>([]);
   const [selectedBookId, setSelectedBookId] = React.useState('');
+  const [editTargetBook, setEditTargetBook] = React.useState<Book>(null);
+  const [isShowEditModal, setEditModalFlag] = React.useState(false);
 
   React.useEffect(() => {
     if (!props.user.uid) {
@@ -62,6 +67,10 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
 
   // TODO 本棚情報を取得する
 
+  const handleShowEditModal = (book: Book | null) => {
+    setEditTargetBook(book);
+  };
+
   if (!props.user.uid) {
     return (
       <React.Fragment>
@@ -81,20 +90,16 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
     <React.Fragment>
       <Header />
       <div className={'container is-fluid is-marginless'}>
-        <div className={'level is-marginless'}>
-          <div className={'level-left'}>
-            <div className="level-item">
-              <p className="subtitle is-5">
-                <strong>{`${props.user.displayName}の本棚`}</strong>
-              </p>
-            </div>
-            <div className="level-item" />
-          </div>
-        </div>
         <div className={'columns is-marginless'}>
           <div className={'column is-one-quarter'}>
             {/*TODO trigger部分を明記*/}
             <InputModal shelfId={shelfId} uid={props.user.uid} />
+            {editTargetBook && (
+              <EditModal
+                book={editTargetBook}
+                setShowEditModal={handleShowEditModal}
+              />
+            )}
 
             {bookList.map((book, i) => {
               return (
@@ -104,8 +109,14 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
                   onClick={e => setSelectedBookId(book.id)}
                   isSelected={selectedBookId === book.id}
                 >
-                  <div className="card-image" style={{ padding: '1em' }}>
-                    <a>
+                  <div
+                    className="card-image has-text-right"
+                    style={{ padding: '1em' }}
+                  >
+                    <a
+                      className={'has-text-grey-lighter'}
+                      onClick={e => handleShowEditModal(book)}
+                    >
                       <i className="fas fa-edit" />
                     </a>
                     <figure
@@ -152,8 +163,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  setCurrentUser: (user: firebase.UserInfo) =>
-    dispatch(userActions.loginSuccess(user))
+  setCurrentUser: (user: IUser) => dispatch(userActions.loginSuccess(user))
 });
 
 export default connect(

@@ -4,22 +4,12 @@ import { db } from '../../firebase';
 import { Book } from './index';
 
 interface Props {
-  shelfId: string;
-  uid: string;
+  book: Book;
+  setShowEditModal: (book: Book | null) => void;
 }
 
-const InputModal: React.FunctionComponent<Props> = props => {
-  const [isShowModal, setModalFlag] = React.useState(false);
-  const [bookInfo, setBookInfo] = React.useState<Book>({
-    id: '',
-    title: '',
-    author: '',
-    category: '',
-    imageUrl: '',
-    amazonUrl: '',
-    shelfId: props.shelfId,
-    uid: props.uid
-  });
+const EditModal: React.FunctionComponent<Props> = props => {
+  const [bookInfo, setBookInfo] = React.useState<Book>(props.book);
   const [isRequired, setRequired] = React.useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,14 +17,16 @@ const InputModal: React.FunctionComponent<Props> = props => {
     setBookInfo({ ...bookInfo, [name]: value });
   };
 
-  const submitBookInfo = async () => {
+  const updateBookInfo = async () => {
     if (!bookInfo.title) {
       setRequired(true);
       return;
     }
+    delete bookInfo.id;
+
     await db
       .collection('books')
-      .doc()
+      .doc(props.book.id)
       .set(bookInfo)
       .then(result => {
         console.log(result);
@@ -42,24 +34,20 @@ const InputModal: React.FunctionComponent<Props> = props => {
       .catch(error => {
         console.log(error);
       });
-    setModalFlag(false);
+    props.setShowEditModal(null);
   };
 
   return (
     <React.Fragment>
-      <a
-        className={'button is-rounded is-fullwidth has-text-weight-bold'}
-        style={{ marginBottom: '1em' }}
-        onClick={e => setModalFlag(true)}
-      >
-        書籍を追加する
-      </a>
-      <div className={isShowModal ? 'modal is-active' : 'modal'}>
+      <div className={props.book ? 'modal is-active' : 'modal'}>
         <div className="modal-background" />
         <div className="modal-card">
           <header className="modal-card-head">
-            <p className="modal-card-title">書籍を追加する</p>
-            <button className="delete" onClick={e => setModalFlag(false)} />
+            <p className="modal-card-title">書籍を編集する</p>
+            <button
+              className="delete"
+              onClick={e => props.setShowEditModal(null)}
+            />
           </header>
           <section className="modal-card-body">
             <Field
@@ -98,11 +86,14 @@ const InputModal: React.FunctionComponent<Props> = props => {
             className="modal-card-foot"
             style={{ justifyContent: 'flex-end' }}
           >
-            <button className="button" onClick={e => setModalFlag(false)}>
+            <button
+              className="button"
+              onClick={e => props.setShowEditModal(null)}
+            >
               キャンセル
             </button>
-            <button className="button is-success" onClick={submitBookInfo}>
-              登録
+            <button className="button is-success" onClick={updateBookInfo}>
+              更新
             </button>
           </footer>
         </div>
@@ -111,4 +102,4 @@ const InputModal: React.FunctionComponent<Props> = props => {
   );
 };
 
-export default InputModal;
+export default EditModal;

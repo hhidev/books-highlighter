@@ -20,16 +20,6 @@ const HomeMobile: React.FunctionComponent<Props> = props => {
         <React.Fragment>
           <Header />
           <div className={'container is-fluid is-marginless'}>
-            <div className={'level is-marginless'}>
-              <div className={'level-left'}>
-                <div className="level-item">
-                  <p className="subtitle is-5">
-                    <strong>{`${props.user.displayName}の本棚`}</strong>
-                  </p>
-                </div>
-                <div className="level-item" />
-              </div>
-            </div>
             <div className={'section'}>
               <InputModalMobile shelfId={props.shelfId} uid={props.user.uid} />
             </div>

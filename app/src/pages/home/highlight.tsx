@@ -3,6 +3,7 @@ import { db, storage } from '../../firebase';
 import styled from 'styled-components';
 import { IUser } from '../../store/modules/user';
 import { uuid } from '../../utils/uuid-generator';
+import EditHighlightModal from './edit-highlight-modal';
 
 interface Props {
   bookId: string;
@@ -15,7 +16,7 @@ interface Image {
   text: string;
 }
 
-interface HighlightText {
+export interface HighlightText {
   text: string;
   color: string;
   uid: string;
@@ -37,6 +38,8 @@ const Highlight: React.FunctionComponent<Props> = props => {
     right: 0
   });
   const [uploadedFileNames, setFileNames] = React.useState([]);
+  const [highlightColor, setHighlightColor] = React.useState(Color.yellow);
+  const [isShowHighlightEdit, setHighlightModal] = React.useState(false);
 
   React.useEffect(() => {
     if (props.bookId) {
@@ -72,8 +75,9 @@ const Highlight: React.FunctionComponent<Props> = props => {
         } else {
           setHighlights([]);
         }
+        console.log(snapShot);
       });
-  });
+  }, [props.bookId]);
 
   const showOnMenu = () => {
     if (window.getSelection().type === 'Range') {
@@ -112,7 +116,7 @@ const Highlight: React.FunctionComponent<Props> = props => {
         bookId: props.bookId,
         text: selectedText,
         uid: props.user.uid,
-        color: 'yellow'
+        color: highlightColor
       })
       .then(docRef => {
         console.log(docRef);
@@ -120,6 +124,27 @@ const Highlight: React.FunctionComponent<Props> = props => {
       .catch(error => {
         console.log(error);
       });
+
+    setSelectionRect({
+      width: 0,
+      height: 0,
+      bottom: 0,
+      top: 0,
+      left: 0,
+      right: 0
+    });
+  };
+
+  const showEditHighlightModal = () => {
+    setHighlightModal(true);
+    setSelectionRect({
+      width: 0,
+      height: 0,
+      bottom: 0,
+      top: 0,
+      left: 0,
+      right: 0
+    });
   };
 
   const upload = e => {
@@ -171,21 +196,46 @@ const Highlight: React.FunctionComponent<Props> = props => {
       </div>
 
       {/*TODO スクロール量を加算する */}
-      <PopupMenu style={{ left: '0px', top: `${selectionRect.top - 24}px` }}>
+      <PopupMenu style={{ left: '0px', top: `${selectionRect.top - 35}px` }}>
         <ButtonContainer
           style={{
             transform: 'translateX(-33.9741%)',
             left: `${selectionRect.left}px`
           }}
         >
-          <ColorButton color={'yellow'} />
-          <ColorButton color={'blue'} />
-          <ColorButton color={'red'} />
+          {Object.keys(Color).map((k, i) => {
+            return (
+              <ColorButton
+                color={Color[k]}
+                onClick={e => setHighlightColor(Color[k])}
+                key={i}
+              >
+                <i
+                  className={
+                    highlightColor === Color[k] ? 'fas fa-check' : 'is-hidden'
+                  }
+                />
+              </ColorButton>
+            );
+          })}
           <a onClick={e => submit()}>ハイライト</a>
-          <a>編集</a>
+          <a onClick={e => showEditHighlightModal()}>編集</a>
         </ButtonContainer>
         <Triangle left={selectionRect.left} />
       </PopupMenu>
+
+      {isShowHighlightEdit && (
+        <EditHighlightModal
+          isShow={isShowHighlightEdit}
+          highlight={{
+            bookId: props.bookId,
+            text: selectedText,
+            uid: props.user.uid,
+            color: highlightColor
+          }}
+          setShowModal={setHighlightModal}
+        />
+      )}
 
       <CircleButton className={'button is-info'}>
         <i className="fas fa-camera" />
@@ -200,7 +250,7 @@ const Highlight: React.FunctionComponent<Props> = props => {
       {selectedTabName === 'ハイライト' &&
         highlights.map((highlight, i) => {
           return (
-            <div key={i} style={{ marginBottom: '1em' }}>
+            <div key={i} style={{ marginBottom: '1em', width: '800px' }}>
               <HighlightContent color={highlight.color}>
                 {highlight.text}
               </HighlightContent>
@@ -222,7 +272,10 @@ const Highlight: React.FunctionComponent<Props> = props => {
           {images.map((image, i) => {
             return (
               <div key={i} style={{ marginBottom: '1em' }}>
-                <pre onMouseUp={showOnMenu}>{image.text}</pre>
+                <pre onMouseUp={showOnMenu}>
+                  {image.text}
+                  <a className={'button is-rounded is-danger'}>削除</a>
+                </pre>
               </div>
             );
           })}
@@ -269,7 +322,7 @@ const Triangle = styled('div')<{ left: number }>`
   border-left: 8px solid transparent;
 `;
 
-const ColorButton = styled('a')<{ color: string }>`
+export const ColorButton = styled('a')<{ color: string }>`
   background-color: ${props => props.color};
   width: 24px;
   height: 24px;
@@ -279,6 +332,7 @@ const ColorButton = styled('a')<{ color: string }>`
 const HighlightContent = styled('pre')<{ color: string }>`
   border-left: solid 4px ${props => props.color};
   background-color: white;
+  white-space: normal;
 `;
 
 const CircleButton = styled('label')`
@@ -298,5 +352,11 @@ const CircleButton = styled('label')`
     font-size: 0.7rem;
   }
 `;
+
+export const Color = {
+  yellow: '#F2E366',
+  blue: '#A3C4FF',
+  pink: '#FFC2F5'
+};
 
 export default Highlight;

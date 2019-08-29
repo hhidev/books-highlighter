@@ -10,3 +10,4 @@ export const db = firebaseApp.firestore();
 export const storage = firebaseApp.storage();
 export const functions = firebaseApp.functions();
 export const auth = firebaseApp.auth();
+export const GoogleAuthProvider = new firebase.auth.GoogleAuthProvider();

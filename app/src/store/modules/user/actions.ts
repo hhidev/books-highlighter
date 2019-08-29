@@ -19,13 +19,7 @@ export const logout = () => ({
 });
 
 // ログイン成功時
-export const loginSuccess = (data: firebase.UserInfo) => ({
+export const loginSuccess = (data: IUser) => ({
   type: types.LOGIN_SUCCESS,
-  data: data
-});
-
-// 追加情報取得成功時
-export const fetchAddonInfoSuccess = (data: IUser) => ({
-  type: types.FETCH_INFO_OK,
   data: data
 });
