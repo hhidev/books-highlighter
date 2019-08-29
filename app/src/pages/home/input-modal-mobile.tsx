@@ -1,24 +1,14 @@
 import * as React from 'react';
 import Field from '../../components/field';
 import { db } from '../../firebase';
+import { Book } from './input-modal';
 
 interface Props {
   shelfId: string;
   uid: string;
 }
 
-export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  category: string;
-  imageUrl: string;
-  amazonUrl: string;
-  shelfId: string;
-  uid: string;
-}
-
-const InputModal: React.FunctionComponent<Props> = props => {
+const InputModalMobile: React.FunctionComponent<Props> = props => {
   const [isShowModal, setModalFlag] = React.useState(false);
   const [bookInfo, setBookInfo] = React.useState<Book>({
     id: '',
@@ -79,31 +69,9 @@ const InputModal: React.FunctionComponent<Props> = props => {
               isError={isRequired}
               onChangeHandler={handleInputChange}
             />
-            <Field
-              label={'著者'}
-              name={'author'}
-              value={bookInfo.author}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'カテゴリ'}
-              name={'category'}
-              value={bookInfo.category}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'画像URL'}
-              name={'imageUrl'}
-              value={bookInfo.imageUrl}
-              onChangeHandler={handleInputChange}
-            />
-            <Field
-              label={'Amazonリンク'}
-              name={'amazonUrl'}
-              value={bookInfo.amazonUrl}
-              onChangeHandler={handleInputChange}
-            />
+            <p>詳細な書籍情報はPC版で編集できます</p>
           </section>
+
           <footer
             className="modal-card-foot"
             style={{ justifyContent: 'flex-end' }}
@@ -121,4 +89,4 @@ const InputModal: React.FunctionComponent<Props> = props => {
   );
 };
 
-export default InputModal;
+export default InputModalMobile;

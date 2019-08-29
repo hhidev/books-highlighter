@@ -3,10 +3,12 @@ import Header from '../../components/header';
 import { IUser } from '../../store/modules/user';
 import { Book, BookCard } from '../../pages/home';
 import Highlight from './highlight';
+import InputModalMobile from './input-modal-mobile';
 
 interface Props {
   bookList: Array<Book>;
   user: IUser;
+  shelfId: string;
 }
 
 const HomeMobile: React.FunctionComponent<Props> = props => {
@@ -28,6 +30,10 @@ const HomeMobile: React.FunctionComponent<Props> = props => {
                 <div className="level-item" />
               </div>
             </div>
+            <div className={'section'}>
+              <InputModalMobile shelfId={props.shelfId} uid={props.user.uid} />
+            </div>
+
             <div className={'columns is-marginless'}>
               <div className={'column is-one-quarter'}>
                 {props.bookList.map((book, i) => {
@@ -44,7 +50,11 @@ const HomeMobile: React.FunctionComponent<Props> = props => {
                           style={{ marginLeft: 'auto', marginRight: 'auto' }}
                         >
                           <img
-                            src={book.imageUrl}
+                            src={
+                              book.imageUrl
+                                ? book.imageUrl
+                                : 'https://bulma.io/images/placeholders/128x128.png'
+                            }
                             style={{ objectFit: 'contain', height: '100%' }}
                           />
                         </figure>

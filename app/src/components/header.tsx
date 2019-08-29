@@ -49,19 +49,9 @@ const Header: React.FunctionComponent<Props> = props => {
   return (
     <nav className="navbar" role="navigation" aria-label="main navigation">
       <div className="navbar-brand">
-        <a className="navbar-item" href="/">
+        <label className="navbar-item">
           <h1>BooksHighlighter</h1>
-        </a>
-        <a
-          role="button"
-          className="navbar-burger"
-          aria-label="menu"
-          aria-expanded="false"
-        >
-          <span aria-hidden="true" />
-          <span aria-hidden="true" />
-          <span aria-hidden="true" />
-        </a>
+        </label>
       </div>
 
       <div className="navbar-menu">

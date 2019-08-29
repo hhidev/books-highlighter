@@ -60,6 +60,8 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
     }
   }, [props]);
 
+  // TODO 本棚情報を取得する
+
   if (!props.user.uid) {
     return (
       <React.Fragment>
@@ -70,7 +72,9 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
 
   // モバイルからのアクセスはモバイル版コンポーネントを返す
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    return <HomeMobile bookList={bookList} user={props.user} />;
+    return (
+      <HomeMobile bookList={bookList} user={props.user} shelfId={shelfId} />
+    );
   }
 
   return (
@@ -101,12 +105,19 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
                   isSelected={selectedBookId === book.id}
                 >
                   <div className="card-image" style={{ padding: '1em' }}>
+                    <a>
+                      <i className="fas fa-edit" />
+                    </a>
                     <figure
                       className="image is-128x128"
                       style={{ marginLeft: 'auto', marginRight: 'auto' }}
                     >
                       <img
-                        src={book.imageUrl}
+                        src={
+                          book.imageUrl
+                            ? book.imageUrl
+                            : 'https://bulma.io/images/placeholders/128x128.png'
+                        }
                         style={{ objectFit: 'contain', height: '100%' }}
                       />
                     </figure>

@@ -18,7 +18,7 @@ const Setup: React.FunctionComponent<Props & RouterProps> = props => {
   const [formData, setFormData] = React.useState<FormData>({
     title: `${props.user.displayName}の本棚`,
     public: false,
-    uid: ''
+    uid: props.user.uid
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,11 +38,7 @@ const Setup: React.FunctionComponent<Props & RouterProps> = props => {
   const submit = async () => {
     await db
       .collection('shelves')
-      .add({
-        title: '',
-        public: false,
-        uid: props.user.uid
-      })
+      .add(formData)
       .then(docRef => {
         props.history.push(`/${docRef.id}`);
       })
