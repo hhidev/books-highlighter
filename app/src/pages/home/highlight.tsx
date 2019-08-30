@@ -11,6 +11,7 @@ interface Props {
 }
 
 interface Image {
+  id: string;
   bookId: string;
   filePath: string;
   text: string;
@@ -47,7 +48,11 @@ const Highlight: React.FunctionComponent<Props> = props => {
         .where('bookId', '==', props.bookId)
         .onSnapshot(snapShot => {
           if (!snapShot.empty) {
-            const images = snapShot.docs.map(doc => doc.data() as Image);
+            const images = snapShot.docs.map(doc => {
+              const image = doc.data() as Image;
+              image.id = doc.id;
+              return image;
+            });
             setImages(images);
 
             const currentUploads = uploadedFileNames.filter(
@@ -168,6 +173,17 @@ const Highlight: React.FunctionComponent<Props> = props => {
       });
   };
 
+  const deleteDetectText = async (id: string) => {
+    await db
+      .collection('images')
+      .doc(id)
+      .delete()
+      .then()
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
   return (
     <React.Fragment>
       <div
@@ -274,7 +290,12 @@ const Highlight: React.FunctionComponent<Props> = props => {
               <div key={i} style={{ marginBottom: '1em' }}>
                 <pre onMouseUp={showOnMenu}>
                   {image.text}
-                  <a className={'button is-rounded is-danger'}>削除</a>
+                  <a
+                    className={'button is-rounded is-danger'}
+                    onClick={e => deleteDetectText(image.id)}
+                  >
+                    削除
+                  </a>
                 </pre>
               </div>
             );
