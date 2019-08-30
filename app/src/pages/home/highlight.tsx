@@ -24,16 +24,19 @@ export interface HighlightText {
   bookId: string;
 }
 
+interface PopMenuPosition {
+  top: number;
+  left: number;
+  right: number;
+}
+
 const Highlight: React.FunctionComponent<Props> = props => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const [images, setImages] = React.useState<Image[]>([]);
   const [selectedTabName, setSelectTab] = React.useState('ハイライト');
   const [highlights, setHighlights] = React.useState<HighlightText[]>([]);
   const [selectedText, setSelectedText] = React.useState('');
-  const [selectionRect, setSelectionRect] = React.useState<ClientRect>({
-    width: 0,
-    height: 0,
-    bottom: 0,
+  const [selectionRect, setSelectionRect] = React.useState<PopMenuPosition>({
     top: 0,
     left: 0,
     right: 0
@@ -41,6 +44,7 @@ const Highlight: React.FunctionComponent<Props> = props => {
   const [uploadedFileNames, setFileNames] = React.useState([]);
   const [highlightColor, setHighlightColor] = React.useState(Color.yellow);
   const [isShowHighlightEdit, setHighlightModal] = React.useState(false);
+  const [isShowNotify, setShowNotify] = React.useState(true);
 
   React.useEffect(() => {
     if (props.bookId) {
@@ -87,31 +91,25 @@ const Highlight: React.FunctionComponent<Props> = props => {
   const showOnMenu = () => {
     if (window.getSelection().type === 'Range') {
       setSelectedText(window.getSelection().toString());
-      setSelectionRect(
-        window
-          .getSelection()
-          .getRangeAt(0)
-          .getBoundingClientRect()
-      );
+      const rect = window
+        .getSelection()
+        .getRangeAt(0)
+        .getBoundingClientRect();
+      const positionY = rect.top + window.scrollY;
+
+      setSelectionRect({
+        top: positionY,
+        left: rect.left,
+        right: rect.right
+      });
     } else {
       setSelectedText('');
       setSelectionRect({
-        width: 0,
-        height: 0,
-        bottom: 0,
         top: 0,
         left: 0,
         right: 0
       });
     }
-
-    console.log(window.getSelection().toString());
-    console.log(
-      window
-        .getSelection()
-        .getRangeAt(0)
-        .getBoundingClientRect()
-    );
   };
 
   const submit = async () => {
@@ -131,9 +129,6 @@ const Highlight: React.FunctionComponent<Props> = props => {
       });
 
     setSelectionRect({
-      width: 0,
-      height: 0,
-      bottom: 0,
       top: 0,
       left: 0,
       right: 0
@@ -143,9 +138,6 @@ const Highlight: React.FunctionComponent<Props> = props => {
   const showEditHighlightModal = () => {
     setHighlightModal(true);
     setSelectionRect({
-      width: 0,
-      height: 0,
-      bottom: 0,
       top: 0,
       left: 0,
       right: 0
@@ -266,7 +258,13 @@ const Highlight: React.FunctionComponent<Props> = props => {
       {selectedTabName === 'ハイライト' &&
         highlights.map((highlight, i) => {
           return (
-            <div key={i} style={{ marginBottom: '1em', width: '800px' }}>
+            <div
+              key={i}
+              style={{
+                marginBottom: '1em',
+                width: isMobile ? '100%' : '800px'
+              }}
+            >
               <HighlightContent color={highlight.color}>
                 {highlight.text}
               </HighlightContent>
@@ -278,12 +276,14 @@ const Highlight: React.FunctionComponent<Props> = props => {
         <React.Fragment>
           <div
             className={
-              uploadedFileNames.length > 0
+              uploadedFileNames.length === 0 && isShowNotify
                 ? 'notification is-primary'
                 : 'notification is-primary is-hidden'
             }
           >
+            <button className="delete" onClick={e => setShowNotify(false)} />
             解析が終わるとこのタブに結果が表示されます。連続して画像アップロードできます。
+            {!isMobile ? 'モバイルでアクセスするとカメラが使えます' : ''}
           </div>
           {images.map((image, i) => {
             return (
