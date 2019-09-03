@@ -54,14 +54,23 @@ const options = {
 };
 
 // amazonリンクから書籍情報をスクレイピングする
-export const scraping = functions.https.onCall(async data => {
-  return await rp
+export const scraping = functions.https.onCall(data => {
+  return rp
     .get(data.targetUrl, options)
     .then($ => {
-      const urls = JSON.parse($('#imgBlkFront').attr('data-a-dynamic-image'));
+      let urls = [];
+      let title = '';
+      if ($('#ebooksImgBlkFront').attr('data-a-dynamic-image')) {
+        urls = JSON.parse($('#ebooksImgBlkFront').attr('data-a-dynamic-image'));
+        title = $('#ebooksProductTitle').text();
+      } else if ($('#imgBlkFront').attr('data-a-dynamic-image')) {
+        urls = JSON.parse($('#imgBlkFront').attr('data-a-dynamic-image'));
+        title = $('#productTitle').text();
+      }
+
       return {
-        title: $('#productTitle').text(),
-        imageUrl: Object.keys(urls)[0],
+        title: title ? title.replace(/\s+/g, '') : title,
+        imageUrl: Object.keys(urls).length > 0 ? Object.keys(urls)[0] : '',
         author: $('.contributorNameID').text()
       };
     })

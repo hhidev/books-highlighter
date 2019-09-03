@@ -1,11 +1,17 @@
 import * as React from 'react';
 import Field from '../../components/field';
-import { db } from '../../firebase';
+import { db, functions } from '../../firebase';
 import { Book } from './index';
 
 interface Props {
   shelfId: string;
   uid: string;
+}
+
+interface ParseResult {
+  title: string;
+  author: string;
+  imageUrl: string;
 }
 
 const InputModal: React.FunctionComponent<Props> = props => {
@@ -32,17 +38,55 @@ const InputModal: React.FunctionComponent<Props> = props => {
       setRequired(true);
       return;
     }
-    await db
+    const bookId = await db
       .collection('books')
-      .doc()
-      .set(bookInfo)
+      .add(bookInfo)
       .then(result => {
-        console.log(result);
+        return result.id;
       })
       .catch(error => {
         console.log(error);
       });
     setModalFlag(false);
+    setBookInfo({
+      id: '',
+      title: '',
+      author: '',
+      category: '',
+      imageUrl: '',
+      amazonUrl: '',
+      shelfId: props.shelfId,
+      uid: props.uid
+    });
+
+    if (bookInfo.amazonUrl && bookId) {
+      const parseResult = await parseAmazonLink(bookInfo.amazonUrl);
+      if (parseResult) {
+        db.collection('books')
+          .doc(bookId)
+          .update(parseResult)
+          .then(result => {
+            console.log(result);
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      }
+    }
+  };
+
+  const parseAmazonLink = async (url: string) => {
+    const callable = functions.httpsCallable('scraping');
+    const result = await callable({
+      targetUrl: url
+    })
+      .then(result => {
+        return result.data as ParseResult;
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    return result;
   };
 
   return (
