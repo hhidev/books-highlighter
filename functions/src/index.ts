@@ -2,7 +2,8 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 admin.initializeApp(functions.config().firebase);
 import CloudVisionApi from './utils/cloud-vision-api';
-import * as puppeteer from 'puppeteer';
+import * as cheerio from 'cheerio';
+import * as rp from 'request-promise';
 
 // storageに格納された画像をテキスト解析する
 export const detectText = functions.storage
@@ -46,22 +47,25 @@ export const detectText = functions.storage
     }
   });
 
+const options = {
+  transform: (body: any) => {
+    return cheerio.load(body);
+  }
+};
+
 // amazonリンクから書籍情報をスクレイピングする
-export const scraping = functions
-  .runWith({
-    timeoutSeconds: 200,
-    memory: '1GB'
-  })
-  .https.onCall(async (data, context) => {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+export const scraping = functions.https.onCall(async data => {
+  return await rp
+    .get(data.targetUrl, options)
+    .then($ => {
+      const urls = JSON.parse($('#imgBlkFront').attr('data-a-dynamic-image'));
+      return {
+        title: $('#productTitle').text(),
+        imageUrl: Object.keys(urls)[0],
+        author: $('.contributorNameID').text()
+      };
+    })
+    .catch(error => {
+      console.log(error);
     });
-    const page = await browser.newPage();
-    await page.goto(data.targetUrl, { waitUntil: 'networkidle0' });
-    const bookTitle = await (await page.$x(
-      '//span[@id="ebooksProductTitle"]'
-    ))[0];
-    console.log(bookTitle);
-    return bookTitle;
-  });
+});
