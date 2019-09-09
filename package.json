@@ -49,13 +49,14 @@
     "tslint-react": "^3.6.0",
     "url-loader": "^1.1.2",
     "webpack": "^4.29.6",
+    "webpack-bundle-analyzer": "^3.4.1",
     "webpack-cli": "^3.2.3",
     "webpack-dev-server": "^3.2.1"
   },
   "scripts": {
     "clean": "rimraf ./app/dist",
     "start": "npm run clean && webpack-dev-server --config webpack.config.dev.js --progress --colors --hot --debug --dev-tool source-map",
-    "build": "npm run clean && webpack -p --config webpack.config.prd.js --progress --colors",
+    "build": "npm run clean && webpack -p --config webpack.config.prd.js --progress --colors　--display-used-exports",
     "build:staging": "npm run clean && webpack -p --config webpack.config.staging.js --progress --colors",
     "lint": "npm run tslint:check && npm run tslint && npm run prettier",
     "tslint:check": "tslint-config-prettier-check ./tslint.json",

@@ -1,6 +1,7 @@
 const path = require('path');
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 var webpack = require('webpack');
 var dotenv = require('dotenv');
 
@@ -47,23 +48,6 @@ module.exports = () => {
                     }
                 },
                 {
-                    enforce: 'pre',
-                    test: /\.tsx?$/,
-                    exclude: [
-                        /node_modules/
-                    ],
-                    use: [
-                        {
-                            loader: 'tslint-loader',
-                            // trueにするとhotloadが遅くなるのでfalse
-                            options: {
-                                typeCheck: false,
-                                fix: false
-                            },
-                        },
-                    ]
-                },
-                {
                     test: /\.css/,
                     use: [
                         "style-loader",
@@ -88,7 +72,8 @@ module.exports = () => {
                 template: "./app/src/index.html"
             }),
             new HardSourceWebpackPlugin(),
-            new webpack.DefinePlugin(envKeys)
+            new webpack.DefinePlugin(envKeys),
+            new BundleAnalyzerPlugin()
         ]
     };
 

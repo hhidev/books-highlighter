@@ -32,7 +32,6 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
   const [bookList, setBookList] = React.useState<Array<Book>>([]);
   const [selectedBookId, setSelectedBookId] = React.useState('');
   const [editTargetBook, setEditTargetBook] = React.useState<Book>(null);
-  const [isShowEditModal, setEditModalFlag] = React.useState(false);
 
   React.useEffect(() => {
     if (!props.user.uid) {
