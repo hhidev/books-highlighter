@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Field from '../../components/field';
 import { db } from '../../firebase';
 import { Color, ColorButton, HighlightText } from './highlight';
 
@@ -12,7 +11,6 @@ interface Props {
 const EditHighlightModal: React.FunctionComponent<Props> = props => {
   const [highlight, setHighlight] = React.useState(props.highlight.text);
   const [highlightColor, setHighlightColor] = React.useState(Color.yellow);
-  const [isRequired, setRequired] = React.useState(false);
 
   const submit = async () => {
     await db

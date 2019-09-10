@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { IUser } from '../../store/modules/user';
 import { uuid } from '../../utils/uuid-generator';
 import EditHighlightModal from './edit-highlight-modal';
+import TabSwitcher, { TabPanel } from './tabs';
 
 interface Props {
   bookId: string;
@@ -33,7 +34,7 @@ interface PopMenuPosition {
 const Highlight: React.FunctionComponent<Props> = props => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const [images, setImages] = React.useState<Image[]>([]);
-  const [selectedTabName, setSelectTab] = React.useState('ハイライト');
+  // const [selectedTabName, setSelectTab] = React.useState('ハイライト');
   const [highlights, setHighlights] = React.useState<HighlightText[]>([]);
   const [selectedText, setSelectedText] = React.useState('');
   const [selectionRect, setSelectionRect] = React.useState<PopMenuPosition>({
@@ -145,7 +146,7 @@ const Highlight: React.FunctionComponent<Props> = props => {
   };
 
   const upload = e => {
-    setSelectTab('解析済み');
+    // setSelectTab('解析済み');
     const file = e.target.files[0];
     const fileName = uuid();
     uploadedFileNames.push(fileName);
@@ -178,32 +179,61 @@ const Highlight: React.FunctionComponent<Props> = props => {
 
   return (
     <React.Fragment>
-      <div
-        className={isMobile ? 'tabs is-small is-fullwidth' : 'tabs is-small'}
-      >
-        <ul>
-          <li className={selectedTabName === 'ハイライト' ? 'is-active' : ''}>
-            <a onClick={e => setSelectTab('ハイライト')}>
-              ハイライト
-              <span style={{ height: '2em' }} />
-            </a>
-          </li>
-          <li className={selectedTabName === '解析済み' ? 'is-active' : ''}>
-            <a onClick={e => setSelectTab('解析済み')}>
-              解析済み
-              {images.length > 0 ? (
-                <span className="tag is-rounded is-warning">
-                  {images.length}
-                </span>
-              ) : (
-                <span style={{ height: '2em' }} />
-              )}
-            </a>
-          </li>
-        </ul>
-      </div>
+      <TabSwitcher isMobile={isMobile}>
+        <TabPanel tabName={'ハイライト'}>
+          {highlights.map((highlight, i) => {
+            return (
+              <div
+                key={i}
+                style={{
+                  marginBottom: '1em',
+                  width: isMobile ? '100%' : '800px'
+                }}
+              >
+                <HighlightContent color={highlight.color}>
+                  {highlight.text}
+                </HighlightContent>
+              </div>
+            );
+          })}
+        </TabPanel>
+        <TabPanel tabName={'解析済み'}>
+          {
+            <React.Fragment>
+              <div
+                className={
+                  uploadedFileNames.length === 0 && isShowNotify
+                    ? 'notification is-primary'
+                    : 'notification is-primary is-hidden'
+                }
+              >
+                <button
+                  className="delete"
+                  onClick={e => setShowNotify(false)}
+                />
+                解析が終わるとこのタブに結果が表示されます。連続して画像アップロードできます。
+                {!isMobile ? 'モバイルでアクセスするとカメラが使えます' : ''}
+              </div>
+              {images.map((image, i) => {
+                return (
+                  <div key={i} style={{ marginBottom: '1em' }}>
+                    <pre onMouseUp={showOnMenu}>
+                      {image.text}
+                      <a
+                        className={'button is-rounded is-danger'}
+                        onClick={e => deleteDetectText(image.id)}
+                      >
+                        削除
+                      </a>
+                    </pre>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          }
+        </TabPanel>
+      </TabSwitcher>
 
-      {/*TODO スクロール量を加算する */}
       <PopupMenu style={{ left: '0px', top: `${selectionRect.top - 35}px` }}>
         <ButtonContainer
           style={{
@@ -254,54 +284,6 @@ const Highlight: React.FunctionComponent<Props> = props => {
           style={{ display: 'none' }}
         />
       </CircleButton>
-
-      {selectedTabName === 'ハイライト' &&
-        highlights.map((highlight, i) => {
-          return (
-            <div
-              key={i}
-              style={{
-                marginBottom: '1em',
-                width: isMobile ? '100%' : '800px'
-              }}
-            >
-              <HighlightContent color={highlight.color}>
-                {highlight.text}
-              </HighlightContent>
-            </div>
-          );
-        })}
-
-      {selectedTabName === '解析済み' && (
-        <React.Fragment>
-          <div
-            className={
-              uploadedFileNames.length === 0 && isShowNotify
-                ? 'notification is-primary'
-                : 'notification is-primary is-hidden'
-            }
-          >
-            <button className="delete" onClick={e => setShowNotify(false)} />
-            解析が終わるとこのタブに結果が表示されます。連続して画像アップロードできます。
-            {!isMobile ? 'モバイルでアクセスするとカメラが使えます' : ''}
-          </div>
-          {images.map((image, i) => {
-            return (
-              <div key={i} style={{ marginBottom: '1em' }}>
-                <pre onMouseUp={showOnMenu}>
-                  {image.text}
-                  <a
-                    className={'button is-rounded is-danger'}
-                    onClick={e => deleteDetectText(image.id)}
-                  >
-                    削除
-                  </a>
-                </pre>
-              </div>
-            );
-          })}
-        </React.Fragment>
-      )}
     </React.Fragment>
   );
 };

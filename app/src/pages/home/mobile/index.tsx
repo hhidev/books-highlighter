@@ -1,18 +1,28 @@
 import * as React from 'react';
-import Header from '../../components/header';
-import { IUser } from '../../store/modules/user';
-import { Book, BookCard } from '../../pages/home';
-import Highlight from './highlight';
+import Header from '../../../components/header';
+import { IUser, userActions } from '../../../store/modules/user';
+import { Book, BookCard } from '../pc';
+import Highlight from '../highlight';
 import InputModalMobile from './input-modal-mobile';
+import { RouterProps } from 'react-router';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
+import { fetchList } from '../../../store/modules/book/actions';
+import { Store } from '../../../store';
 
 interface Props {
-  bookList: Array<Book>;
   user: IUser;
-  shelfId: string;
+  bookList: Book[];
+  fetchBooks: (uid: string, shelfId: string) => void;
 }
 
-const HomeMobile: React.FunctionComponent<Props> = props => {
+const HomeMobile: React.FunctionComponent<Props & RouterProps> = props => {
+  const shelfId = props.history.location.pathname.replace('/', '');
   const [selectedBook, setSelectedBook] = React.useState<Book>(null);
+
+  React.useEffect(() => {
+    props.fetchBooks(props.user.uid, shelfId);
+  }, []);
 
   return (
     <React.Fragment>
@@ -21,7 +31,7 @@ const HomeMobile: React.FunctionComponent<Props> = props => {
           <Header />
           <div className={'container is-fluid is-marginless'}>
             <div className={'section'}>
-              <InputModalMobile shelfId={props.shelfId} uid={props.user.uid} />
+              <InputModalMobile shelfId={shelfId} uid={props.user.uid} />
             </div>
 
             <div className={'columns is-marginless'}>
@@ -80,9 +90,7 @@ const HomeMobile: React.FunctionComponent<Props> = props => {
               className={'column is-one-quarter'}
               style={{ marginBottom: '80px' }}
             >
-              {selectedBook && (
-                <Highlight bookId={selectedBook.id} user={props.user} />
-              )}
+              <Highlight bookId={selectedBook.id} user={props.user} />
             </div>
           </div>
         </div>
@@ -91,4 +99,18 @@ const HomeMobile: React.FunctionComponent<Props> = props => {
   );
 };
 
-export default HomeMobile;
+const mapStateToProps = (state: Store) => ({
+  user: state.user,
+  bookList: state.books
+});
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  setCurrentUser: (user: IUser) => dispatch(userActions.loginSuccess(user)),
+  fetchBooks: (uid: string, shelfId: string) =>
+    fetchList(uid, shelfId)(dispatch)
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(HomeMobile);

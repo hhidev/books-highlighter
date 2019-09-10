@@ -1,19 +1,20 @@
 import * as React from 'react';
-import Header from '../../components/header';
-import { firebaseApp, db } from '../../firebase';
+import Header from '../../../components/header';
 import { connect } from 'react-redux';
-import { IUser, userActions } from '../../store/modules/user';
+import { IUser, userActions } from '../../../store/modules/user';
 import { Dispatch } from 'redux';
 import { RouterProps } from 'react-router';
-import Highlight from './highlight';
-import InputModal from './input-modal';
-import EditModal from './edit-modal';
+import Highlight from '../highlight';
+import InputModal from '../input-modal';
+import EditModal from '../edit-modal';
 import styled from 'styled-components';
-import HomeMobile from './home-mobile';
+import { fetchList } from '../../../store/modules/book/actions';
+import { Store } from '../../../store';
 
 interface Props {
   user: IUser;
-  setCurrentUser: (user: IUser) => void;
+  bookList: Book[];
+  fetchBooks: (uid: string, shelfId: string) => void;
 }
 
 export interface Book {
@@ -29,61 +30,18 @@ export interface Book {
 
 const Home: React.FunctionComponent<Props & RouterProps> = props => {
   const shelfId = props.history.location.pathname.replace('/', '');
-  const [bookList, setBookList] = React.useState<Array<Book>>([]);
   const [selectedBookId, setSelectedBookId] = React.useState('');
   const [editTargetBook, setEditTargetBook] = React.useState<Book>(null);
 
   React.useEffect(() => {
-    if (!props.user.uid) {
-      firebaseApp.auth().onAuthStateChanged(user => {
-        if (user) {
-          props.setCurrentUser(user);
-        }
-      });
-    }
+    props.fetchBooks(props.user.uid, shelfId);
   }, []);
-
-  React.useEffect(() => {
-    if (props.user.uid) {
-      db.collection('books')
-        .where('uid', '==', props.user.uid)
-        .where('shelfId', '==', shelfId)
-        .onSnapshot(snapShot => {
-          if (!snapShot.empty) {
-            const bookList = [];
-            if (!snapShot.empty) {
-              snapShot.docs.forEach(doc => {
-                const book = doc.data() as Book;
-                book.id = doc.id;
-                bookList.push(book);
-              });
-            }
-            setBookList(bookList);
-          }
-        });
-    }
-  }, [props]);
 
   // TODO 本棚情報を取得する
 
   const handleShowEditModal = (book: Book | null) => {
     setEditTargetBook(book);
   };
-
-  if (!props.user.uid) {
-    return (
-      <React.Fragment>
-        <div>...loading</div>
-      </React.Fragment>
-    );
-  }
-
-  // モバイルからのアクセスはモバイル版コンポーネントを返す
-  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    return (
-      <HomeMobile bookList={bookList} user={props.user} shelfId={shelfId} />
-    );
-  }
 
   return (
     <React.Fragment>
@@ -100,7 +58,7 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
               />
             )}
 
-            {bookList.map((book, i) => {
+            {props.bookList.map((book, i) => {
               return (
                 <BookCard
                   className="card"
@@ -141,9 +99,7 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
             })}
           </div>
           <div className={'column'} style={{ marginBottom: '80px' }}>
-            {selectedBookId && (
-              <Highlight bookId={selectedBookId} user={props.user} />
-            )}
+            <Highlight bookId={selectedBookId} user={props.user} />
           </div>
         </div>
       </div>
@@ -157,12 +113,15 @@ export const BookCard = styled('div')<{ isSelected: boolean }>`
   background-color: ${props => (props.isSelected ? 'beige' : '')};
 `;
 
-const mapStateToProps = state => ({
-  user: state.user
+const mapStateToProps = (state: Store) => ({
+  user: state.user,
+  bookList: state.books
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  setCurrentUser: (user: IUser) => dispatch(userActions.loginSuccess(user))
+  setCurrentUser: (user: IUser) => dispatch(userActions.loginSuccess(user)),
+  fetchBooks: (uid: string, shelfId: string) =>
+    fetchList(uid, shelfId)(dispatch)
 });
 
 export default connect(

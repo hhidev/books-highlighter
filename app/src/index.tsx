@@ -7,7 +7,8 @@ import * as ReactGA from 'react-ga';
 import { ConnectedRouter } from 'connected-react-router';
 import Store from './store';
 import Login from './pages/login';
-import Home from './pages/home';
+import Home from './pages/home/pc';
+import HomeMobile from './pages/home/mobile';
 import Setup from './pages/setup';
 import Auth from './pages/auth';
 
@@ -21,6 +22,8 @@ history.listen((location, action) => {
 });
 
 const App: React.FunctionComponent = props => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   return (
     <Provider store={Store(history)}>
       <ConnectedRouter history={history}>
@@ -36,7 +39,9 @@ const App: React.FunctionComponent = props => {
               <Route
                 path="/:shelfId"
                 exact
-                render={props => <Home {...props} />}
+                render={props =>
+                  isMobile ? <HomeMobile {...props} /> : <Home {...props} />
+                }
               />
             </Switch>
           </Auth>

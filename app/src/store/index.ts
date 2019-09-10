@@ -2,10 +2,18 @@ import { createStore, applyMiddleware, combineReducers } from 'redux';
 import logger from 'redux-logger';
 import * as reducers from './modules';
 import thunk from 'redux-thunk';
-import { connectRouter } from 'connected-react-router';
+import { connectRouter, RouterState } from 'connected-react-router';
+import { Book } from './modules/book/model';
+import User from './modules/user/model';
+
+export interface Store {
+  user: User;
+  books: Book[];
+  router: RouterState;
+}
 
 const Index = history => {
-  const rootReducer = combineReducers({
+  const rootReducer = combineReducers<Store>({
     router: connectRouter(history),
     ...reducers
   });
