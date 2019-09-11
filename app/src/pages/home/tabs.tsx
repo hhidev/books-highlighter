@@ -44,7 +44,6 @@ const Tab: React.FunctionComponent<TabProps> = props => {
 
 export const TabPanel = (props: PanelProps) => {
   const context = React.useContext(TabContext);
-  console.log(props);
   return props.tabName === context.activeTabName ? <>{props.children}</> : null;
 };
 

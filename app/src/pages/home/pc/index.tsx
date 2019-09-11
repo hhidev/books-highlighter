@@ -7,25 +7,15 @@ import { RouterProps } from 'react-router';
 import Highlight from '../highlight';
 import InputModal from '../input-modal';
 import EditModal from '../edit-modal';
-import styled from 'styled-components';
 import { fetchList } from '../../../store/modules/book/actions';
 import { Store } from '../../../store';
+import { Book } from '../../../store/modules/book/model';
+import BookCard, { BookContext } from '../book-card';
 
 interface Props {
   user: IUser;
   bookList: Book[];
   fetchBooks: (uid: string, shelfId: string) => void;
-}
-
-export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  category: string;
-  imageUrl: string;
-  amazonUrl: string;
-  shelfId: string;
-  uid: string;
 }
 
 const Home: React.FunctionComponent<Props & RouterProps> = props => {
@@ -44,7 +34,7 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
   };
 
   return (
-    <React.Fragment>
+    <BookContext.Provider value={{ selectedBookId }}>
       <Header />
       <div className={'container is-fluid is-marginless'}>
         <div className={'columns is-marginless'}>
@@ -61,40 +51,11 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
             {props.bookList.map((book, i) => {
               return (
                 <BookCard
-                  className="card"
+                  book={book}
+                  setSelectedBookId={setSelectedBookId}
+                  handleShowEditModal={handleShowEditModal}
                   key={i}
-                  onClick={e => setSelectedBookId(book.id)}
-                  isSelected={selectedBookId === book.id}
-                >
-                  <div
-                    className="card-image has-text-right"
-                    style={{ padding: '1em' }}
-                  >
-                    <a
-                      className={'has-text-grey-lighter'}
-                      onClick={e => handleShowEditModal(book)}
-                    >
-                      <i className="fas fa-edit" />
-                    </a>
-                    <figure
-                      className="image is-128x128"
-                      style={{ marginLeft: 'auto', marginRight: 'auto' }}
-                    >
-                      <img
-                        src={
-                          book.imageUrl
-                            ? book.imageUrl
-                            : 'https://bulma.io/images/placeholders/128x128.png'
-                        }
-                        style={{ objectFit: 'contain', height: '100%' }}
-                      />
-                    </figure>
-                  </div>
-                  <div className="card-content" style={{ padding: '1em' }}>
-                    <p className="title is-5">{book.title}</p>
-                    <p className="subtitle is-6">{book.author}</p>
-                  </div>
-                </BookCard>
+                />
               );
             })}
           </div>
@@ -103,15 +64,9 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
           </div>
         </div>
       </div>
-    </React.Fragment>
+    </BookContext.Provider>
   );
 };
-
-export const BookCard = styled('div')<{ isSelected: boolean }>`
-  box-shadow: none;
-  border-bottom: solid 1px #e8e8e8;
-  background-color: ${props => (props.isSelected ? 'beige' : '')};
-`;
 
 const mapStateToProps = (state: Store) => ({
   user: state.user,

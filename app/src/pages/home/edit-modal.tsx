@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Field from '../../components/field';
 import { db } from '../../firebase';
-import { Book } from './pc';
+import { Book } from '../../store/modules/book/model';
 
 interface Props {
   book: Book;
