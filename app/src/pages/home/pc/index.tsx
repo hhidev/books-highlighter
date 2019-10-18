@@ -48,19 +48,23 @@ const Home: React.FunctionComponent<Props & RouterProps> = props => {
               />
             )}
 
-            {props.bookList.map((book, i) => {
-              return (
-                <BookCard
-                  book={book}
-                  setSelectedBookId={setSelectedBookId}
-                  handleShowEditModal={handleShowEditModal}
-                  key={i}
-                />
-              );
-            })}
+            <div style={{ overflow: 'auto', height: '750px' }}>
+              {props.bookList.map((book, i) => {
+                return (
+                  <BookCard
+                    book={book}
+                    setSelectedBookId={setSelectedBookId}
+                    handleShowEditModal={handleShowEditModal}
+                    key={i}
+                  />
+                );
+              })}
+            </div>
           </div>
           <div className={'column'} style={{ marginBottom: '80px' }}>
-            <Highlight bookId={selectedBookId} user={props.user} />
+            <div style={{ height: '750px', overflow: 'auto' }}>
+              <Highlight bookId={selectedBookId} user={props.user} />
+            </div>
           </div>
         </div>
       </div>
