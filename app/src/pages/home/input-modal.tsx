@@ -34,10 +34,15 @@ const InputModal: React.FunctionComponent<Props> = props => {
   };
 
   const submitBookInfo = async () => {
+    if (bookInfo.amazonUrl) {
+      bookInfo.title = '解析中';
+    }
+
     if (!bookInfo.title) {
       setRequired(true);
       return;
     }
+
     const bookId = await db
       .collection('books')
       .add(bookInfo)
@@ -132,7 +137,9 @@ const InputModal: React.FunctionComponent<Props> = props => {
               onChangeHandler={handleInputChange}
             />
             <Field
-              label={'Amazonリンク'}
+              label={
+                'Amazonリンク(この項目のみで登録しても、自動的に全ての情報が登録されます)'
+              }
               name={'amazonUrl'}
               value={bookInfo.amazonUrl}
               onChangeHandler={handleInputChange}
