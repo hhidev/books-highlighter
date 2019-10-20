@@ -137,9 +137,7 @@ const InputModal: React.FunctionComponent<Props> = props => {
               onChangeHandler={handleInputChange}
             />
             <Field
-              label={
-                'Amazonリンク(この項目のみで登録しても、自動的に全ての情報が登録されます)'
-              }
+              label={'Amazonリンクから書籍情報を登録'}
               name={'amazonUrl'}
               value={bookInfo.amazonUrl}
               onChangeHandler={handleInputChange}

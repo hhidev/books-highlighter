@@ -1,11 +1,17 @@
 import * as React from 'react';
 import Field from '../../../components/field';
-import { db } from '../../../firebase';
+import { db, functions } from '../../../firebase';
 import { Book } from '../../../store/modules/book/model';
 
 interface Props {
   shelfId: string;
   uid: string;
+}
+
+interface ParseResult {
+  title: string;
+  author: string;
+  imageUrl: string;
 }
 
 const InputModalMobile: React.FunctionComponent<Props> = props => {
@@ -28,21 +34,55 @@ const InputModalMobile: React.FunctionComponent<Props> = props => {
   };
 
   const submitBookInfo = async () => {
+    if (bookInfo.amazonUrl) {
+      bookInfo.title = '解析中';
+    }
+
     if (!bookInfo.title) {
       setRequired(true);
       return;
     }
-    await db
+
+    const bookId = await db
       .collection('books')
-      .doc()
-      .set(bookInfo)
+      .add(bookInfo)
       .then(result => {
         console.log(result);
+        return result.id;
       })
       .catch(error => {
         console.log(error);
       });
     setModalFlag(false);
+
+    if (bookInfo.amazonUrl && bookId) {
+      const parseResult = await parseAmazonLink(bookInfo.amazonUrl);
+      if (parseResult) {
+        db.collection('books')
+          .doc(bookId)
+          .update(parseResult)
+          .then(result => {
+            console.log(result);
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      }
+    }
+  };
+
+  const parseAmazonLink = async (url: string) => {
+    const callable = functions.httpsCallable('scraping');
+    const result = await callable({
+      targetUrl: url
+    })
+      .then(result => {
+        return result.data as ParseResult;
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    return result;
   };
 
   return (
@@ -69,7 +109,13 @@ const InputModalMobile: React.FunctionComponent<Props> = props => {
               isError={isRequired}
               onChangeHandler={handleInputChange}
             />
-            <p>詳細な書籍情報はPC版で編集できます</p>
+            <Field
+              label={'Amazonリンクから書籍情報を登録'}
+              name={'amazonUrl'}
+              value={bookInfo.amazonUrl}
+              onChangeHandler={handleInputChange}
+            />
+            {/*<p>詳細な書籍情報はPC版で編集できます</p>*/}
           </section>
 
           <footer
